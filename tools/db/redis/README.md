@@ -5,12 +5,8 @@
 	* ubuntu: 18.04.1 LTS
 	* redis: 5.0.2
 
-* 安装
-	```
-	# see https://redis.io/topics/quickstart
-	python tools/install_redis.py --help
-	e.g: python tools/install_redis.py
-	```
+* [安装](https://redis.io/topics/quickstart)
+
 * 工作目录
 ```
 mkdir ~/db

@@ -5,12 +5,7 @@ router+configsvr+shard建立mongo分片集群
 	* ubuntu: 18.04.1 LTS
 	* mongod: 4.0.5
 
-* 安装
-	```
-	# see https://docs.mongodb.com/manual/installation
-	python tools/script/install_mongo.py --help
-	e.g: python tools/script/install_mongo.py
-	```
+* [安装](https://docs.mongodb.com/manual/installation)
 
 * 工作目录
 ```
