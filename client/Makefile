@@ -5,6 +5,12 @@ LUACLIB_PATH ?= luaclib
 
 CFLAGS = -g -O2 -Wall $(MYFLAGS)
 
+$(LUALIB_PATH):
+	mkdir -p $(LUALIB_PATH)
+
+$(LUACLIB_PATH):
+	mkdir -p $(LUACLIB_PATH)
+
 # sproto
 $(LUACLIB_PATH)/sproto.so : 3rd/sproto/sproto.c 3rd/sproto/lsproto.c
 	$(CC) $(CFLAGS) $(SHARED) $^ -o $@
@@ -45,7 +51,7 @@ update3rd :
 delete3rd :
 	rm -rf 3rd/sproto 3rd/lua-protobuf 3rd/lua-cjson 3rd/lua-crypt
 
-all : \
+all : $(LUALIB_PATH) $(LUACLIB_PATH) \
 	$(foreach v, $(LUALIB),$(LUALIB_PATH)/$(v)) \
 	$(foreach v, $(LUACLIB),$(LUACLIB_PATH)/$(v))
 
