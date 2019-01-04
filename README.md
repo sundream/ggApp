@@ -71,8 +71,8 @@ Table of Contents
 		```
 
 * 安装DB(框架默认使用redis)
-	* [安装redis](https://github.com/sundream/ggApp/tools/db/redis/README.md)
-	* [安装mongodb](https://github.com/sundream/ggApp/tools/db/mongodb/README.md)
+	* [安装redis](https://github.com/sundream/ggApp/blob/master/tools/db/redis/README.md)
+	* [安装mongodb](https://github.com/sundream/ggApp/blob/master/tools/db/mongodb/README.md)
 
 * 编译accountcenter
 	```
@@ -135,13 +135,13 @@ Table of Contents
 
 客户端
 ======
-see [client/README.md](https://github.com/sundream/ggApp/client/README.md)
+see [client/README.md](https://github.com/sundream/ggApp/blob/master/client/README.md)
 
 [Back to TOC](#table-of-contents)
 
 压测工具
 ========
-see [robot/README.md](https://github.com/sundream/ggApp/robot/README.md)
+see [robot/README.md](https://github.com/sundream/ggApp/blob/master/robot/README.md)
 
 [Back to TOC](#table-of-contents)
 
@@ -185,7 +185,6 @@ see [robot/README.md](https://github.com/sundream/ggApp/robot/README.md)
 	+redis					// redis集群
 	+mongodb				// mongo集群
 ```
-* [详细目录结构](https://github.com/sundream/ggApp/directory.md)
 
 [Back to TOC](#table-of-contents)
 
@@ -207,13 +206,12 @@ see [robot/README.md](https://github.com/sundream/ggApp/robot/README.md)
 
 社区
 ====
-* QQ 群：583735151
 
 [Back to TOC](#table-of-contents)
 
 
 证书
 ====
-ggApp is licensed under the MIT License,Version 0.0.1. See [LICENSE](https://github.com/sundream/ggApp/LICENSE) for the full license text.
+ggApp is licensed under the MIT License,Version 0.0.1. See [LICENSE](https://github.com/sundream/ggApp/blob/master/LICENSE) for the full license text.
 
 [Back to TOC](#table-of-contents)
