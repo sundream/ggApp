@@ -1,0 +1,9 @@
+[submodule "gamesrv/src/gg"]
+	path = gamesrv/src/gg
+	url = https://github.com/sundream/gg
+[submodule "gamesrv/skynet"]
+	path = gamesrv/skynet
+	url = https://github.com/sundream/skynet
+[submodule "tools/proto/sproto/sprotodump"]
+	path = tools/proto/sproto/sprotodump
+	url = https://github.com/sundream/sprotodump

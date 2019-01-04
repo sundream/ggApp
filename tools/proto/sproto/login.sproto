@@ -1,0 +1,119 @@
+# [1000,1200)
+
+# C2GS
+# token认证(createrole/entergame前发送,检查是否通过账号登陆)
+C2GS_CheckToken 1002 {
+	request {
+		token 0 : string	#账号中心登录后返回的认证token
+		acct 1 : string		#帐号
+		version 2 : string  #版本:如:1.0.0
+		forward 3 : string	#透传参数
+	}
+}
+
+C2GS_CreateRole 1003 {
+	request {
+		roleid 0 : integer	#仅在调试登录时有用(正常创建角色不发,服务端控制角色ID生成)
+		acct 1 : string
+		name 2 : string
+		job 3 : integer
+		sex 4 : integer		#0--男,1--女
+		shapeid 5 : integer
+	}
+}
+
+C2GS_EnterGame 1004 {
+	request {
+		roleid 0 : integer
+	}
+}
+
+C2GS_ExitGame 1005 {
+}
+
+#ping+pong
+C2GS_Ping 1006 {
+	request {
+		str 0 : string
+	}
+}
+
+#GS2C
+.RoleType { roleid 0 : integer
+	name 1 : string
+	job 2 : integer				# 职业
+	sex 3 : integer				# 0--男,1--女
+	shapeid 4 : integer			# 造型
+	lv 5 : integer
+	create_serverid 6 : string	# 创建所在服
+	now_serverid 7 : string		# 当前所在服
+	createtime 8 : integer		# 创建时间
+}
+
+# token认证结果
+# 成功: status == 200 and code == 0
+GS2C_CheckTokenResult 1102 {
+	request {
+		status 0 : integer	#http状态码
+		code 1 : integer	#返回码
+		message 2 : string	#返回码描述
+		forward 3 : string	#透传参数
+	}
+}
+
+# 创建角色结果
+# 成功: status == 200 and code == 0
+GS2C_CreateRoleResult 1103 {
+	request {
+		status 0 : integer	#http状态码
+		code 1 : integer	#返回码
+		message 2 : string	#返回码描述
+		# 仅当成功时才有以下数据
+		role 3 : RoleType
+	}
+}
+
+# 进入游戏结果
+# 成功: status == 200 and code == 0
+GS2C_EnterGameResult 1104 {
+	request {
+		status 0 : integer	#http状态码
+		code 1 : integer	#返回码
+		message 2 : string	#返回码描述
+		# 仅当成功时才有以下数据
+		account 3 : string	# 角色账号
+	}
+}
+
+# 服务端控制:要求客户端重新进入指定服务器
+GS2C_ReEnterGame 1105 {
+	request {
+		token 0 : string		# 认证token
+		roleid 1 : integer		# 角色ID
+		go_serverid 2 : string	# 跳转的服务器ID
+		ip 3 : string			# 服务器#ip
+		tcp_port 4 : integer		# 服务器#tcp_port
+		kcp_port 5 : integer		# 服务器#kcp_port
+		websocket_port 6 : integer	# 服务器#websocket_port
+	}
+}
+
+# 服务端主动踢下线前发送此协议
+GS2C_Kick 1106 {
+	request {
+		reason 0 : string
+	}
+}
+
+# ping+pong
+GS2C_Pong 1108 {
+	request {
+		str 0 : string		# 透传C2S_Ping#str
+		time 1 : integer	# server's time
+	}
+}
+
+# 开始进入游戏
+# 时序: GS2C_EnterGameStart -> Other Proto -> GS2C_EnterGameResult
+GS2C_EnterGameStart 1109 {
+}

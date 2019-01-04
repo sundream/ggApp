@@ -1,0 +1,25 @@
+* 依赖
+	* [lua-5.3.5](https://www.lua.org/download.html)
+
+* 编译
+	```
+	# 删除第三方库
+	make delete3rd
+	# 检出第三方库
+	make update3rd
+	# 编译
+	make linux
+	# make macosx
+	# 清除编译
+	make clean
+	```
+* 运行
+	```
+	cd ~/ggApp/robot/3rd/skynet
+	./skynet ../../app/config/robot.config &
+	telnet 127.0.0.1 6666
+	启动若干机器人:
+	start app/service/newrobot 100 1000001  <=> 从1000001角色ID开始启动100个机器人
+	start app/service/newrobot 100 1000101  <=> 继续从1000101角色ID开始启动100个机器人
+	// app/config/robot.config中有ip,port配置,更改这两个字段即可改变测试服务器
+	```

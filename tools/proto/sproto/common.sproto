@@ -1,0 +1,7 @@
+.package {
+	type 0 : integer
+	session 1 : integer
+	# 包序号(唯一,严格递增)
+	ud 2 : integer
+}
+

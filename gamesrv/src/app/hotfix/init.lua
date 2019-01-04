@@ -1,0 +1,1 @@
+require "app.hotfix.hotfix"

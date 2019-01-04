@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+// 协议构成
+// length(2 byte) + MessageHeader + 消息头中对应消息的数据(如果无数据可以不发，只发消息头)
+// 消息头和消息内容编码格式均为length(2 byte) + protobuf编码的数据
+message MessageHeader {
+	int32 type = 1;	// 协议类型
+	int32 session = 2;	// 会话ID
+	int32 ud = 3;		// 用户数据(可以自定义,这里我们用来传包序号)
+	bool request = 4;	// true--request,false--response
+}

@@ -1,0 +1,5 @@
+require "app.codec.sproto"
+require "app.codec.sprotox"
+require "app.codec.protobuf"
+require "app.codec.jsonx"
+require "app.codec.codec"

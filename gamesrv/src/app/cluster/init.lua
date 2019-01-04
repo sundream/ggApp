@@ -1,0 +1,1 @@
+require "app.cluster.rpc"
