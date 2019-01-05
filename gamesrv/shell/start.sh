@@ -22,7 +22,6 @@ elif [ "$status" = "killed" ]; then
 	rm ../skynet/skynet.pid
 fi
 
-pwd
 mkdir -p ../log
 cd ../skynet
 chmod +x skynet

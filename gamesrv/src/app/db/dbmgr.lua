@@ -5,7 +5,7 @@ dbmgr = dbmgr or {}
 
 function dbmgr.init(db_type)
 	dbmgr.db = nil
-	dbmgr.db_type = db_type or "redis"
+	dbmgr.db_type = db_type
 end
 
 function dbmgr.getdb()

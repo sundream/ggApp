@@ -52,7 +52,7 @@ Table of Contents
 		```
 	* [lua-5.3.5](https://www.lua.org/download.html)
 	* [openresty-1.13.6.2](https://openresty.org/en/installation.html)
-	* python2.7.15
+	* python-2.7.15
 		```
 		curl -R -O https://www.python.org/ftp/python/2.7.15/Python-2.7.15.tgz
 		tar -zxvf Python-2.7.15.tgz

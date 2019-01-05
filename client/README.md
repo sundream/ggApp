@@ -26,6 +26,6 @@
 	Game Client 0.0.1 Welcome!
 	exit() -> exit app
 	help() -> show help doc
-	// 输入help()即可查看帮助文档。另外客户端控制台可以输入任何lua脚本
+	// 输入help()即可查看帮助文档。你也可以输入任何lua脚本
 	```
 

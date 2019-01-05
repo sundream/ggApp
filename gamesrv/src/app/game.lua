@@ -12,7 +12,8 @@ function game.init()
 	cjson.encode_sparse_array(true)
 	game.init_ltrace()
 	logger.init()
-	dbmgr.init()
+	local db_type = skynet.getenv("db_type") or "redis"
+	dbmgr.init(db_type)
 end
 
 function game.start()
@@ -48,30 +49,27 @@ function game.start()
 	local timeout = 18000
 	local msg_max_len = 65535
 	local maxclient = playermgr.onlinelimit or 10240
-	-- sproto
-	local proto = {
-		type = "sproto",
-		--c2s = "../src/proto/sproto/all.sproto",
-		--s2c = "../src/proto/sproto/all.sproto",
-		--binary = false,
-		c2s = "../src/proto/sproto/all.spb",
-		s2c = "../src/proto/sproto/all.spb",
-		binary = true,
-	}
-	--[[
-	-- protobuf
-	local proto = {
-		type = "protobuf",
-		pbfile = "../src/proto/protobuf/all.pb",
-		idfile = "../src/proto/protobuf/message_define.lua",
-	}
-	--[[
-	-- json
-	local proto = {
-		type = "json"
-	}
-	]]
-
+	local proto
+	local proto_type = skynet.getenv("proto_type")
+	if proto_type == "sproto" then
+		proto = {
+			type = "sproto",
+			c2s = "../src/proto/sproto/all.spb",
+			s2c = "../src/proto/sproto/all.spb",
+			binary = true,
+		}
+	elseif proto_type == "protobuf" then
+		proto = {
+			type = "protobuf",
+			pbfile = "../src/proto/protobuf/all.pb",
+			idfile = "../src/proto/protobuf/message_define.lua",
+		}
+	else
+		assert(proto_type == "json")
+		proto = {
+			type = "json"
+		}
+	end
 	local gate_conf = {
 		watchdog = address,
 		proto = proto,
