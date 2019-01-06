@@ -11,6 +11,7 @@
 ```
 mkdir ~/db
 cp -R tools/db/* ~/db
+sed -i "" "s|/home/ubuntu|$HOME|g" `grep /home/ubuntu -rl ~/db`
 ```
 
 * 构成  
