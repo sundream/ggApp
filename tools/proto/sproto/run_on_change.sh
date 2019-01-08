@@ -5,7 +5,6 @@ if [ "$ggApp" = "" ]; then
 fi
 cd sprotodump
 lua sprotodump.lua -spb ../*.sproto -o ../all.spb
-pwd
 cp ../all.spb $ggApp/gamesrv/src/proto/sproto/
 cp ../all.spb $ggApp/client/proto/sproto/
 cp ../all.spb $ggApp/robot/proto/sproto/

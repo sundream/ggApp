@@ -1,6 +1,3 @@
-* 依赖
-	* [lua-5.3.5](https://www.lua.org/download.html)
-
 * 编译
 	```
 	# 删除第三方库

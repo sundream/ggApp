@@ -67,7 +67,7 @@ function playermgr.gosrv(linkobj,go_serverid,onlogin)
 	end
 end
 
--- 根据玩家ID获取(玩家当前所在服,是否在线)
+-- 根据玩家ID获取<当前所在服,是否在线>
 function playermgr.route(pid)
 	-- 应用层可以自己管理路由表,如用中心服集中管理并实时同步
 	-- 这里暂时用账号中心记录的数据做演示

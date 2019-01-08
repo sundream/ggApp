@@ -334,8 +334,4 @@ function cplayer:del(key)
 	return self.data:del(key)
 end
 
-function cplayer:__tostring()
-	return string.format("account=%s,pid=%s",self.account,self.pid)
-end
-
 return cplayer

@@ -43,14 +43,14 @@ function game.start()
 	gg.init()
 	_print("gg.init")
 	skynet.dispatch("lua",game.dispatch)
-	-- false--不握手,"nil"--握手告知客户端不加密,其他--握手时和客户端协商密钥
-	local encrypt_key = nil--"ourdream"
 	-- 多久不活跃会主动关闭套接字(1/100秒为单位)
 	local timeout = 18000
 	local msg_max_len = 65535
 	local maxclient = playermgr.onlinelimit or 10240
 	local proto
 	local proto_type = skynet.getenv("proto_type")
+	-- nil/false--不握手,"nil"--握手告知客户端不加密,其他--握手时和客户端协商密钥
+	local encrypt_key = skynet.getenv("encrypt_key")
 	if proto_type == "sproto" then
 		proto = {
 			type = "sproto",
