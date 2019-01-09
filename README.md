@@ -103,7 +103,7 @@ Table of Contents
 * 导入服务器列表
 	```
 	# 首次启动/新增节点时告知账号中心
-	python tools/script/import_servers.py --appid=appid --servers=tools/script/servers.config
+	python tools/script/import_servers.py --appid=appid --config=tools/script/servers.config
 	```
 
 * 运行gamesrv
@@ -152,7 +152,7 @@ see [robot/README.md](https://github.com/sundream/ggApp/blob/master/robot/README
 	```
 	账号中心: 负责账密验证，充值回调验证等
 	游戏服: 负责游戏玩法逻辑(根据不同需求可划分成不同功能服)
-	DB集群: 默认采用mongo分片集群(你也可以选择使用redis集群)
+	DB集群: 默认采用redis集群(你也可以选择使用mongo集群)
 	```
 * 内部结构  
 ![内部结构](node_inner_structure.png)
