@@ -44,11 +44,11 @@ Table of Contents
 	  * ubuntu18.04
 		```
 		# in ubuntu 16.04,you need change readline-dev to libreadline-dev
-		sudo apt install -y protobuf-compiler protobuf-c-compiler readline-dev autoconf git subversion
+		sudo apt install -y protobuf-compiler protobuf-c-compiler readline-dev autoconf git subversion telnet netcat libcurl4-openssl-dev
 		```
 	  * centos
 		```
-		sudo yum install -y protobuf-compiler protobuf-c-compiler readline-devel autoconf git subversion
+		sudo yum install -y protobuf-compiler protobuf-c-compiler readline-devel autoconf git subversion telnet nc libcurl-devel
 		```
 	* [lua-5.3.5](https://www.lua.org/download.html)
 	* [openresty-1.13.6.2](https://openresty.org/en/installation.html)
@@ -103,7 +103,7 @@ Table of Contents
 * 导入服务器列表
 	```
 	# 首次启动/新增节点时告知账号中心
-	python tools/script/import_servers.py --appid=appid --config=tools/script/servers.config
+	python tools/script/import_servers.py --appid=appid --config=tools/script/servers.dev.config
 	```
 
 * 运行gamesrv

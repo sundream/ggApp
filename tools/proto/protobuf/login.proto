@@ -25,8 +25,6 @@ message C2GS_CreateRole {
 // @id=104
 message C2GS_EnterGame {
 	int64 roleid = 1;			// 角色ID
-	string kuafu_token = 2;	// 跨服透传的认证token
-	string quicklogin = 3;		// 快速登陆的token（算法生成，重连带上该字段)
 }
 
 // 退出游戏

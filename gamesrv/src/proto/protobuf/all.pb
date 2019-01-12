@@ -6,7 +6,7 @@
 session (Rsession
 ud (Rud
 request (Rrequestbproto3
-Õ
+”
 
 login.proto"o
 C2GS_CheckToken
@@ -20,14 +20,9 @@
 name (	Rname
 job (Rjob
 sex (Rsex
-shapeid (Rshapeid"i
+shapeid (Rshapeid"(
 C2GS_EnterGame
-roleid (Rroleid
-kuafu_token (	R
-kuafuToken
-
-quicklogin (	R
-quicklogin"
+roleid (Rroleid"
 C2GS_ExitGame"
 	C2GS_Ping
 str (	Rstr"ð

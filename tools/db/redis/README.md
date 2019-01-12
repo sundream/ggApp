@@ -29,7 +29,7 @@ sed -i "s|/home/ubuntu|$HOME|g" `grep /home/ubuntu -rl ~/db`
 * 启动
 	```
 	sh tools/script/startallredis.sh
-	// 如果首次启动,我们需要构建集群
+	// 如果首次启动,我们需要构建集群,127.0.0.1为redis.conf中绑定的ip,如果有变动需要修改
 	redis-cli --cluster create 127.0.0.1:7001 127.0.0.1:7002 127.0.0.1:7003 127.0.0.1:7004 127.0.0.1:7005 127.0.0.1:7006 --cluster-replicas 1
 	// 低版本可以用源码目录下的redis-trib.rb工具
 	./redis-trib.rb create --replicas 1 127.0.0.1:7001 127.0.0.1:7002 127.0.0.1:7003 127.0.0.1:7004 127.0.0.1:7005 127.0.0.1:7006
