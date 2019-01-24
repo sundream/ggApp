@@ -79,7 +79,7 @@ function cserver:on_tick()
 	local req = httpc.make_request({
 		appid = appid,
 		version = "0.0.0", -- 这个版本可以获取所有列表
-		channel = "my",
+		platform = "my",
 		devicetype = "ios",
 	})
 	local status,response = httpc.post(accountcenter,url,req)

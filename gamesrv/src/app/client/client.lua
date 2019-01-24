@@ -40,7 +40,8 @@ function client.onmessage(linkid,message)
 	if not client.check_message(linkid,message) then
 		return
 	end
-	logger.log("debug","netclient","op=recv,linkid=%s,linktype=%s,pid=%s,message=%s",linkid,linkobj.linktype,linkobj.pid,message)
+	logger.log("debug","client","op=recv,linkid=%s,linktype=%s,ip=%s,port=%s,pid=%s,message=%s",
+		linkid,linkobj.linktype,linkobj.ip,linkobj.port,linkobj.pid,message)
 	local player
 	if linkobj.pid then
 		player = assert(playermgr.getonlineplayer(linkobj.pid))
@@ -126,7 +127,8 @@ function client._sendpackage(linkid,proto,request,callback)
 	if not pid and linkobj.master then
 		pid = linkobj.master.pid
 	end
-	logger.log("debug","netclient","op=send,linkid=%s,linktype=%s,pid=%s,message=%s",linkid,linktype,pid,message)
+	logger.log("debug","client","op=send,linkid=%s,linktype=%s,ip=%s,port=%s,pid=%s,message=%s",
+		linkid,linktype,linkobj.ip,linkobj.port,pid,message)
 	if linktype == "tcp" then
 		skynet.send(client.tcp_gate,"lua","write",linkid,message)
 	elseif linktype == "kcp" then
@@ -235,6 +237,29 @@ function client.reload_proto()
 	if client.kcp_gate then
 		skynet.send(client.kcp_gate,"lua","reload")
 	end
+end
+
+function client.forward(proto,address)
+	if client.tcp_gate then
+		skynet.send(client.tcp_gate,"lua","forward",proto,address)
+	end
+	if client.websocket_gate then
+		skynet.send(client.websocket_gate,"lua","forward",proto,address)
+	end
+	if client.kcp_gate then
+		skynet.send(client.kcp_gate,"lua","forward",proto,address)
+	end
+end
+
+function client.http_onmessage(linkobj,uri,query,header,body)
+	logger.log("debug","http","op=recv,linkid=%s,ip=%s,port=%s,method=%s,uri=%s,query=%s,header=%s,body=%s",
+		linkobj.linkid,linkobj.ip,linkobj.port,linkobj.method,uri,query,header,body)
+
+	local func = net.http_cmd(uri)
+	if func then
+		func(linkobj,query,header,body)
+	end
+	skynet.ret(nil)
 end
 
 return client

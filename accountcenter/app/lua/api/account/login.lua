@@ -19,6 +19,7 @@
 --		message =	[required] type=number help=返回码说明
 --		data = {
 --			token =		[required] type=string help=认证TOKEN
+--			acct =		[required] type=string help=内部账号
 --		}
 --	}
 --example:
@@ -98,7 +99,7 @@ end
 
 function handle.get()
 	local config = util.config()
-	if config.mode ~= "debug" then
+	if config.env ~= "dev" then
 		util.response_json(ngx.HTTP_FORBIDDEN)
 		return
 	end

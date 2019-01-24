@@ -18,7 +18,7 @@
 --		code =		[required] type=number help=返回码
 --		message =	[required] type=number help=返回码说明
 --		data = {
---			rolelsit =	[optional] type=list help=角色列表
+--			rolelsit =	[optional] type=list help=角色列表,角色格式见api/role/get
 --		}
 --	}
 --example:
@@ -79,7 +79,7 @@ end
 
 function handle.get()
 	local config = util.config()
-	if config.mode ~= "debug" then
+	if config.env ~= "dev" then
 		util.response_json(ngx.HTTP_FORBIDDEN)
 		return
 	end

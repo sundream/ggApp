@@ -99,6 +99,11 @@ function game.start()
 		websocket_gate = skynet.uniqueservice("gg/service/gate/websocket")
 		skynet.call(websocket_gate,"lua","open",gate_conf)
 	end
+	local http_port = skynet.getenv("http_port")
+	if http_port then
+		gate_conf.port = http_port
+		httpd.start(gate_conf)
+	end
 
 	net.init()
 	_print("net.init")
@@ -149,9 +154,14 @@ function game._dispatch(session,source,typ,...)
 end
 
 function game.dispatch(session,source,typ,...)
+	local ok,err
 	local cmd = game.extract_cmd(typ,...)
-	profile.cost[typ] = profile.cost[typ] or {__tostring=tostring,}
-	local ok,err = profile.stat(profile.cost[typ],cmd,onerror,game._dispatch,session,source,typ,...)
+	if cmd then
+		profile.cost[typ] = profile.cost[typ] or {__tostring=tostring,}
+		ok,err = profile.stat(profile.cost[typ],cmd,onerror,game._dispatch,session,source,typ,...)
+	else
+		ok,err = xpcall(game._dispatch,onerror,session,source,typ,...)
+	end
 	-- 将错误传给引擎,这样被对方skynet.call报错后也会回复对方一个错误包
 	assert(ok,err)
 end
@@ -172,6 +182,9 @@ function game.dogm(session,source,...)
 end
 
 function game.service_dispatch(session,source,cmd,...)
+	if cmd == "http" then
+		client.http_onmessage(...)
+	end
 end
 
 function game.getpid()

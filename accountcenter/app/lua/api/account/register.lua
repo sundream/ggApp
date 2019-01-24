@@ -13,7 +13,7 @@
 --	acct		[required] type=string help=账号
 --	passwd		[requried] type=string help=密码(md5值)
 --	sdk			[required] type=string help=接入的SDK
---	channel		[required] type=string help=渠道
+--	platform		[required] type=string help=平台
 --return:
 --	type=table encode=json
 --	{
@@ -21,8 +21,8 @@
 --		message =	[required] type=number help=返回码说明
 --	}
 --example:
---	curl -v 'http://127.0.0.1:8887/api/account/register?sign=debug&appid=appid&acct=lgl&passwd=1&sdk=my&channel=my'
---	curl -v 'http://127.0.0.1:8887/api/account/register' -d 'sign=debug&appid=appid&acct=lgl&passwd=1&sdk=my&channel=my'
+--	curl -v 'http://127.0.0.1:8887/api/account/register?sign=debug&appid=appid&acct=lgl&passwd=1&sdk=my&platform=my'
+--	curl -v 'http://127.0.0.1:8887/api/account/register' -d 'sign=debug&appid=appid&acct=lgl&passwd=1&sdk=my&platform=my'
 
 local Answer = require "answer"
 local util = require "server.account.util"
@@ -39,7 +39,7 @@ function handle.exec(args)
 		acct = {type="string"},
 		passwd = {type="string"},
 		sdk = {type="string"},
-		channel = {type="string"},
+		platform = {type="string"},
 	})
 	if err then
 		local response = Answer.response(Answer.code.PARAM_ERR)
@@ -51,7 +51,7 @@ function handle.exec(args)
 	local acct = request.acct
 	local passwd = request.passwd
 	local sdk = request.sdk
-	local channel = request.channel
+	local platform = request.platform
 	local app = util.get_app(appid)
 	if not app then
 		util.response_json(ngx.HTTP_OK,Answer.response(Answer.code.APPID_NOEXIST))
@@ -79,7 +79,7 @@ function handle.exec(args)
 		acct = acct,
 		passwd = passwd,
 		sdk = sdk,
-		channel = channel,
+		platform = platform,
 	})
 	util.response_json(ngx.HTTP_OK,Answer.response(code))
 	return
@@ -87,7 +87,7 @@ end
 
 function handle.get()
 	local config = util.config()
-	if config.mode ~= "debug" then
+	if config.env ~= "dev" then
 		util.response_json(ngx.HTTP_FORBIDDEN)
 		return
 	end

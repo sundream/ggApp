@@ -11,7 +11,7 @@
 --	sign		[required] type=string help=签名
 --	appid		[required] type=string help=appid
 --	version		[required] type=string help=版本
---	channel		[required] type=string help=渠道
+--	platform		[required] type=string help=平台
 --	devicetype	[required] type=string help=设备类型
 --	acct		[optional] type=string help=账号
 --return:
@@ -25,8 +25,8 @@
 --		}
 --	}
 --example:
---	curl -v 'http://127.0.0.1:8887/api/account/server/list?sign=debug&appid=appid&version=0.0.1&channel=my&devicetype=ios&acct=lgl'
---	curl -v 'http://127.0.0.1:8887/api/account/server/list' -d 'sign=debug&appid=appid&version=0.0.1&channel=my&devicetype=ios&acct=lgl'
+--	curl -v 'http://127.0.0.1:8887/api/account/server/list?sign=debug&appid=appid&version=0.0.1&platform=my&devicetype=ios&acct=lgl'
+--	curl -v 'http://127.0.0.1:8887/api/account/server/list' -d 'sign=debug&appid=appid&version=0.0.1&platform=my&devicetype=ios&acct=lgl'
 
 local Answer = require "answer"
 local util = require "server.account.util"
@@ -41,7 +41,7 @@ function handle.exec(args)
 		sign = {type="string"},
 		appid = {type="string"},
 		version = {type="string"},				-- 版本
-		channel = {type="string"},				-- 渠道
+		platform = {type="string"},				-- 平台
 		devicetype = {type="string"},			-- 设备类型
 		acct = {type="string",optional=true},
 	})
@@ -53,7 +53,7 @@ function handle.exec(args)
 	end
 	local appid = request.appid
 	local version = request.version
-	local channel = request.channel
+	local platform = request.platform
 	local devicetype = request.devicetype
 	local acct = request.acct
 	local ip = ngx.var.remote_addr
@@ -67,7 +67,7 @@ function handle.exec(args)
 		util.response_json(ngx.HTTP_OK,Answer.response(Answer.code.SIGN_ERR))
 		return
 	end
-	local serverlist,zonelist = util.filter_serverlist(appid,version,ip,acct,channel,devicetype)
+	local serverlist,zonelist = util.filter_serverlist(appid,version,ip,acct,platform,devicetype)
 	local response = Answer.response(Answer.code.OK)
 	response.data = {serverlist=serverlist,zonelist=zonelist}
 	util.response_json(ngx.HTTP_OK,response)
@@ -76,7 +76,7 @@ end
 
 function handle.get()
 	local config = util.config()
-	if config.mode ~= "debug" then
+	if config.env ~= "dev" then
 		util.response_json(ngx.HTTP_FORBIDDEN)
 		return
 	end

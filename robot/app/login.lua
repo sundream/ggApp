@@ -129,7 +129,7 @@ local function quicklogin(tcpobj,acct,roleid,callback)
 			acct = acct,
 			passwd = passwd,
 			sdk = "my",
-			channel = "my",
+			platform = "my",
 		})
 		local status,response = httpc.post(accountcenter,url,req)
 		if status ~= 200 then
@@ -139,13 +139,13 @@ local function quicklogin(tcpobj,acct,roleid,callback)
 		response = unpack_response(response)
 		local code = response.code
 		if code ~= Answer.code.OK then
-			fail("register fail: code=%s,message=%s",code,Answer.message[code])
+			fail("register fail: code=%s,message=%s",code,response.message)
 			return
 		end
 		quicklogin(tcpobj,acct,roleid,callback)
 		return
 	elseif code ~= Answer.code.OK then
-		fail("login fail: code=%s,message=%s",code,Answer.message[code])
+		fail("login fail: code=%s,message=%s",code,response.message)
 		return
 	end
 	local token = response.data.token

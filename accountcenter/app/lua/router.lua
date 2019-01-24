@@ -1,7 +1,7 @@
 local Router = {}
 Router.__index = Router
 
-function Router:new(config)
+function Router:new()
 	local self = {}
 	setmetatable(self,Router)
 	self.handles = {}

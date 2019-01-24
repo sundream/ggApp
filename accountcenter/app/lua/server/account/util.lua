@@ -13,7 +13,10 @@ function util.response_json(status,response)
 end
 
 function util.config()
-	return require("server.account.config")
+	local env = os.getenv("env")
+	if env == "dev" then
+		return require("server.account.config.config_dev")
+	end
 end
 
 function util.signature(str,secret)
@@ -26,7 +29,11 @@ function util.signature(str,secret)
 end
 
 function util.check_signature(sign,str,secret)
-	if util.config().mode == "debug" and sign == "debug" then
+	-- 密钥配置成nocheck,则不检查签名(https通信时可能会这样做)
+	if secret == "nocheck" then
+		return true
+	end
+	if util.config().env == "dev" and sign == "debug" then
 		return true
 	end
 	if util.signature(str,secret) ~= sign then
@@ -35,9 +42,37 @@ function util.check_signature(sign,str,secret)
 	return true
 end
 
+function util.apps()
+	return require "server.account.config.apps"
+end
+
 function util.get_app(appid)
-	local config = util.config()
-	return config.apps[appid]
+	local apps = util.apps()
+	return apps[appid]
+end
+
+function util.sdks()
+	return require "server.account.config.sdks"
+end
+
+function util.get_sdk(sdk)
+	local sdks = util.sdks()
+	return sdks[sdk]
+end
+
+function util.platforms()
+	return require "server.account.config.platforms"
+end
+
+function util.get_platform(platform)
+	local platforms = util.platforms()
+	return platforms[platform]
+end
+
+function util.get_sdklogin(sdk)
+	local modname = string.format("api.account.sdklogin.%s",sdk)
+	local ok,func = xpcall(require,debug.traceback,modname)
+	return ok,func
 end
 
 function util.zonelist_by_version(appid,version)
@@ -55,9 +90,9 @@ function util.zonelist_by_acct(appid,acct)
 	return app.acct_whitelist[acct]
 end
 
-function util.zonelist_by_channel(appid,channel)
+function util.zonelist_by_platform(appid,platform)
 	local app = util.get_app(appid)
-	return app.channel_whitelist[channel]
+	return app.platform_whitelist[platform]
 end
 
 function util.serverlist_by_zonelist(all_serverlist,zonelist)
@@ -72,7 +107,7 @@ function util.serverlist_by_zonelist(all_serverlist,zonelist)
 	return serverlist
 end
 
-function util.filter_serverlist(appid,version,ip,acct,channel,devicetype)
+function util.filter_serverlist(appid,version,ip,acct,platform,devicetype)
 	local servermgr = require "server.account.servermgr"
 	local config = util.config()
 	local env = config.env
@@ -101,7 +136,7 @@ function util.filter_serverlist(appid,version,ip,acct,channel,devicetype)
 			return serverlist,zonelist
 		end
 	end
-	local zonelist = util.zonelist_by_channel(appid,channel)
+	local zonelist = util.zonelist_by_platform(appid,platform)
 	if zonelist then
 		serverlist = util.serverlist_by_zonelist(all_serverlist,zonelist)
 		return serverlist,zonelist

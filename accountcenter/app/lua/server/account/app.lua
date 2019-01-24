@@ -8,12 +8,11 @@ local Server = {}
 function Server:init_worker()
 	self.name = "account"
 	self.version = require "server.account.version"
-	self.config = require "server.account.config"
-	self:init_router(self.config.router)
+	self:init_router()
 end
 
-function Server:init_router(config)
-	self.router = Router:new(config)
+function Server:init_router()
+	self.router = Router:new()
 	self:register("api.account.rpc")
 	self:register("api.account.register")
 	self:register("api.account.login")

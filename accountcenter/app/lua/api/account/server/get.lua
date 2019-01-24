@@ -68,7 +68,7 @@ end
 
 function handle.get()
 	local config = util.config()
-	if config.mode ~= "debug" then
+	if config.env ~= "dev" then
 		util.response_json(ngx.HTTP_FORBIDDEN)
 		return
 	end

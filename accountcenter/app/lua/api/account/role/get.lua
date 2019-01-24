@@ -24,6 +24,7 @@
 --					createtime = 创建时间
 --					create_serverid = 创建所在服
 --					now_serverid = 当前所在服
+--					online = 是否在线
 --					lv = 等级
 --					gold = 金币
 --		}
@@ -73,7 +74,7 @@ end
 
 function handle.get()
 	local config = util.config()
-	if config.mode ~= "debug" then
+	if config.env ~= "dev" then
 		util.response_json(ngx.HTTP_FORBIDDEN)
 		return
 	end

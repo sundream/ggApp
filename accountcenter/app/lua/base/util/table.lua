@@ -699,7 +699,7 @@ end
 --@param[type=table] tbl 表
 function table.clear(tbl)
 	for k,v in pairs(tbl) do
-		tbl[k] = nil
+		rawset(tbl,k,nil)
 	end
 end
 

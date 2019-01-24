@@ -58,6 +58,11 @@ _("REPEAT_ENTERGAME",-20029,"重复进入游戏")
 _("REPEAT_NAME",-20030,"名字重复")
 _("INVALID_NAME",-20031,"非法名字")
 _("CLOSE_ENTERGAME",-20032,"服务器尚未开放")
+_("SDK_NOEXIST",-20033,"SDK不存在")
+_("PLATFORM_NOEXIST",-20034,"平台不存在")
+_("UNSUPPORT_PLATFORM",-20035,"不支持的平台")
+_("TIMEOUT",-20036,"超时")
+_("UNSUPPORT_SDK",-20037,"不支持的SDK")
 
 -- 图片服务器错误[-30000,-40000)
 _("IMAGE_NOEXIST",-30000,"图片不存在")
@@ -65,5 +70,18 @@ _("IMAGE_UPLOAD_SIZE_TOO_BIG",-30001,"上传图片尺寸过大")
 
 _("IMAGE_UPLOAD_ERR",-30002,"图片上传错误")
 _("PHOTO_NOEXIST",-30003,"头像不存在")
+
+-- 房间[-60000,-70000)
+_("ROOM_ISFULL",-40001,"该房间已经满人")
+_("ROOM_HALL_NOEXISTENT",-40002,"该大厅不存在")
+_("ROOM_ROOM_NOEXISTENT",-40003,"该房间不存在")
+_("ROOM_HALL_EXISTENT",-40004,"该大厅已存在")
+_("ROOM_ROOM_CREATEDROOM",-40005,"已经创建过房间")
+_("ROOM_ROOM_FLOWERROR",-40006,"当前房间不处于准备状态")
+_("ROOM_ROOM_STARTFLOWERROR",-40007,"当前房间不处于开始状态")
+_("ROOM_ROOM_YETGUESSUP",-40008,"已经出过拳")
+
+_("REDPACK_NOEXISTENT",-50001,"红包不存在")
+_("REDPACK_OVERDUE",-50002,"红包已过期")
 
 return Answer

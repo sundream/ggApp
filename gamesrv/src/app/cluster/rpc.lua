@@ -11,7 +11,7 @@ local MAINSRV_NAME=".main"
 
 function rpc.dispatch(session,source,SOURCE,protoname,cmd,...)
 	local request = {...}
-	logger.log("debug","netcluster","op=recv,session=%s,source=%s,SOURCE=%s,protoname=%s,cmd=%s,request=%s",
+	logger.log("debug","cluster","op=recv,session=%s,source=%s,SOURCE=%s,protoname=%s,cmd=%s,request=%s",
 		session,source,SOURCE,protoname,cmd,request)
 	_G.SOURCE = SOURCE
 	local dispatch = rpc.CMD[protoname]
@@ -24,7 +24,7 @@ function rpc.dispatch(session,source,SOURCE,protoname,cmd,...)
 	_G.SOURCE = nil
 	if session ~= 0 then
 		local isok = table.remove(response,1)
-		logger.log("debug","netcluster","op=resp,session=%s,source=%s,SOURCE=%s,protoname=%s,cmd=%s,request=%s,response=%s,isok=%s",
+		logger.log("debug","cluster","op=resp,session=%s,source=%s,SOURCE=%s,protoname=%s,cmd=%s,request=%s,response=%s,isok=%s",
 			session,source,SOURCE,protoname,cmd,request,response,isok)
 		if isok then
 			skynet.retpack(table.unpack(response))
@@ -56,8 +56,8 @@ function rpc.call(node,protoname,cmd,...)
 	if type(node) == "string" then
 		address = MAINSRV_NAME
 	else
-		node = node.node
 		address = node.address
+		node = node.node
 	end
 	assert(node,"nil-node")
 	assert(address,"nil-address")
@@ -67,10 +67,10 @@ function rpc.call(node,protoname,cmd,...)
 		call = true,
 	}
 	local request = {...}
-	logger.log("debug","netcluster","op=call,node=%s,address=%s,SOURCE=%s,protoname=%s,cmd=%s,request=%s",
+	logger.log("debug","cluster","op=call,node=%s,address=%s,SOURCE=%s,protoname=%s,cmd=%s,request=%s",
 		node,address,SOURCE,protoname,cmd,request)
 	local response = {cluster.call(node,address,"cluster",SOURCE,protoname,cmd,...)}
-	logger.log("debug","netcluster","op=return,node=%s,address=%s,SOURCE=%s,protoname=%s,cmd=%s,request=%s,response=%s",
+	logger.log("debug","cluster","op=return,node=%s,address=%s,SOURCE=%s,protoname=%s,cmd=%s,request=%s,response=%s",
 		node,address,SOURCE,protoname,cmd,request,response)
 	return table.unpack(response)
 end
@@ -88,8 +88,8 @@ function rpc.send(node,protoname,cmd,...)
 	if type(node) == "string" then
 		address = MAINSRV_NAME
 	else
-		node = node.node
 		address = node.address
+		node = node.node
 	end
 	assert(node,"nil-node")
 	assert(address,"nil-address")
@@ -98,14 +98,14 @@ function rpc.send(node,protoname,cmd,...)
 		address = skynet.self(),
 	}
 	local request = {...}
-	logger.log("debug","netcluster","op=send,node=%s,address=%s,SOURCE=%s,protoname=%s,cmd=%s,request=%s",
+	logger.log("debug","cluster","op=send,node=%s,address=%s,SOURCE=%s,protoname=%s,cmd=%s,request=%s",
 		node,address,SOURCE,protoname,cmd,request)
 	return cluster.send(node,address,"cluster",SOURCE,protoname,cmd,...)
 end
 
 function __hotfix(oldmod)
 	cluster.reload()
-	logger.log("info","netcluster","op=cluster.reload")
+	logger.log("info","cluster","op=cluster.reload")
 end
 
 return rpc

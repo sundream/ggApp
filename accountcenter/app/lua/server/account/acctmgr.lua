@@ -2,12 +2,12 @@
 --@usage
 --redis数据库结构
 --角色表: appid:role:角色ID => {roleid=xxx,appid=xxx,acct=xxx,create_serverid=xxx,...}
---账号表: acct:账号 => {acct=xxx,passwd=xxx,sdk=xxx,channel=xxx,...}
+--账号表: acct:账号 => {acct=xxx,passwd=xxx,sdk=xxx,platform=xxx,...}
 --账号已有角色表: appid:roles:账号 => {角色ID列表}
 --
 --mongo数据库结构
 --角色表: role =>  {roleid=xxx,appid=xxx,acct=xxx,create_serverid=xxx,...}
---账号表: account => {acct=xxx,passwd=xxx,sdk=xxx,channel=xxx,...}
+--账号表: account => {acct=xxx,passwd=xxx,sdk=xxx,platform=xxx,...}
 --账号已有角色表: account_roles => {acct=xxx,appid=xxx,roles={角色ID列表}}
 
 
@@ -66,7 +66,7 @@ function acctmgr.getacct(acct)
 end
 
 --/*
--- acctobj: {acct=账号,passwd=密码,sdk=sdk,channel=渠道,...}
+-- acctobj: {acct=账号,passwd=密码,sdk=sdk,platform=平台,...}
 --*/
 function acctmgr.addacct(acctobj)
 	local acct = assert(acctobj.acct)
@@ -134,7 +134,10 @@ function acctmgr.getrolelist(acct,appid)
 		for i,roleid in ipairs(roles) do
 			table.insert(keys,string.format("%s:role:%s",appid,roleid))
 		end
-		local rolelist = db:mget(table.unpack(keys))
+		local rolelist = {}
+		if #keys > 0 then
+			rolelist = db:mget(table.unpack(keys))
+		end
 		redis:close(db)
 		for i,data in ipairs(rolelist) do
 			rolelist[i] = cjson.decode(data)
