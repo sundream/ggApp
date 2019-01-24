@@ -1,9 +1,24 @@
-[submodule "gamesrv/src/gg"]
-	path = gamesrv/src/gg
-	url = https://github.com/sundream/gg
 [submodule "gamesrv/skynet"]
 	path = gamesrv/skynet
 	url = https://github.com/sundream/skynet
 [submodule "tools/proto/sproto/sprotodump"]
 	path = tools/proto/sproto/sprotodump
 	url = https://github.com/sundream/sprotodump
+[submodule "gamesrv/src/gg/like_skynet/3rd/lfs"]
+	path = gamesrv/src/gg/like_skynet/3rd/lfs
+	url = https://github.com/sundream/luafilesystem
+[submodule "gamesrv/src/gg/like_skynet/3rd/lua-cjson"]
+	path = gamesrv/src/gg/like_skynet/3rd/lua-cjson
+	url = https://github.com/sundream/lua-cjson
+[submodule "gamesrv/src/gg/like_skynet/3rd/lua-protobuf"]
+	path = gamesrv/src/gg/like_skynet/3rd/lua-protobuf
+	url = https://github.com/sundream/lua-protobuf
+[submodule "gamesrv/src/gg/like_skynet/3rd/skynet_package"]
+	path = gamesrv/src/gg/like_skynet/3rd/skynet_package
+	url = https://github.com/sundream/skynet_package
+[submodule "gamesrv/src/gg/like_skynet/3rd/skynet_websocket"]
+	path = gamesrv/src/gg/like_skynet/3rd/skynet_websocket
+	url = https://github.com/sundream/skynet_websocket
+[submodule "gamesrv/src/gg/like_skynet/3rd/crab"]
+	path = gamesrv/src/gg/like_skynet/3rd/crab
+	url = https://github.com/sundream/crab
