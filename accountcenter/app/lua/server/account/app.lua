@@ -58,6 +58,7 @@ function Server:dispatch()
 			if not isok then
 				ngx.status = ngx.HTTP_INTERNAL_SERVER_ERROR
 				ngx.say(err)
+				ngx.log(ngx.ERR,err)
 			end
 		else
 			util.response_json(ngx.HTTP_METHOD_NOT_IMPLEMENTED)

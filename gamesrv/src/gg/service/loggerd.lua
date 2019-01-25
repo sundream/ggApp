@@ -56,8 +56,8 @@ end
 
 function logger.sendmail(to_list,subject,content)
 	local function escape(str)
-		local ret = string.gsub(str,"\"","\\\"")
-		return ret
+		local str = string.gsub(str,"\"","\\\"")
+		return str
 	end
 	local sh = string.format("cd ../shell && python sendmail.py %s \"%s\" \"%s\"",to_list,escape(subject),escape(content))
 	--os.execute会等待命令执行完毕才返回!

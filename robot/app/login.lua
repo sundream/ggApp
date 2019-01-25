@@ -1,3 +1,4 @@
+local skynet = require "skynet"
 local cjson = require "cjson"
 local crypt = require "skynet.crypt"
 local Answer = require "app.answer"
@@ -10,8 +11,8 @@ local config = require "app.config.user"
 --	2. 创建角色时不经过账号中心(即不会校验账号的存在性)
 local function entergame(tcpobj,acct,roleid,token,callback)
 	local function fail(fmt,...)
-		fmt = string.format("[linktype=%s,%s#%s] %s",tcpobj.linktype,tcpobj.account or acct,roleid,fmt)
-		print(string.format(fmt,...))
+		fmt = string.format("[linkid=%s,account=%s,roleid=%s] %s",tcpobj.linkid,tcpobj.account or acct,roleid,fmt)
+		skynet.error(string.format(fmt,...))
 	end
 	local name = tostring(roleid)
 	local token = token or "debug"
@@ -65,13 +66,12 @@ local function entergame(tcpobj,acct,roleid,token,callback)
 					end
 					local role = request.role
 					roleid = assert(role.roleid)
-					print(string.format("auto createrole: account=%s,roleid=%s",acct,roleid))
+					skynet.error(string.format("op=createrole,linkid=%s,account=%s,roleid=%s",tcpobj.linkid,acct,roleid))
 					entergame(tcpobj,acct,roleid,token,callback)
 				end)
 				return
 			end
 			tcpobj.account = request.account
-			fail("login success")
 			if callback then
 				callback(tcpobj)
 			end
@@ -100,8 +100,8 @@ end
 -- 类似entergame,但是会先进行账密校验,账号不存在还会自动注册账号
 local function quicklogin(tcpobj,acct,roleid,callback)
 	local function fail(fmt,...)
-		fmt = string.format("[linktype=%s,%s#%s] %s",tcpobj.linktype,tcpobj.account or acct,roleid,fmt)
-		print(string.format(fmt,...))
+		fmt = string.format("[linkid=%s,account=%s,roleid=%s] %s",tcpobj.linkid,tcpobj.account or acct,roleid,fmt)
+		skynet.error(string.format(fmt,...))
 	end
 	local passwd = "1"
 	local name = roleid
@@ -114,7 +114,6 @@ local function quicklogin(tcpobj,acct,roleid,callback)
 		passwd = passwd,
 	})
 	local status,response = httpc.post(accountcenter,url,req)
-	print(status,response)
 	if status ~= 200 then
 		fail("login fail,status:%s",status)
 		return

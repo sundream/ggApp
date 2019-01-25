@@ -74,7 +74,7 @@ function cserver:on_tick()
 		server = cjson.encode(server),
 	})
 	local status,response = httpc.post(accountcenter,url,req)
-
+	assert(status == 200 and response.code == httpc.answer.code.OK)
 	local url = "/api/account/server/list"
 	local req = httpc.make_request({
 		appid = appid,
@@ -83,7 +83,7 @@ function cserver:on_tick()
 		devicetype = "ios",
 	})
 	local status,response = httpc.post(accountcenter,url,req)
-	assert(status == 200)
+	assert(status == 200 and response.code == httpc.answer.code.OK)
 	response = cjson.decode(response)
 	self.all_serverlist = response.data.serverlist
 	self.online_serverlist = table.filter(self.all_serverlist,function (srv)

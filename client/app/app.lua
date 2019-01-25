@@ -1,5 +1,5 @@
 package.path = "client/?.lua;client/lualib/?.lua;" .. package.path
-package.cpath = "client/luaclib/?.so;" .. package.cpath
+package.cpath = "client/luaclib/?.so;client/luaclib/?.dll;" .. package.cpath
 
 require "app.util"
 require "app.cmd"
@@ -29,10 +29,31 @@ else
 	end
 end
 
+local raw_print = print
+print = function (...)
+	if not app.os_is_windows then
+		raw_print(...)
+		return
+	end
+	if not app.stdin then
+		raw_print(...)
+	else
+		local t = {...}
+		for i,v in ipairs(t) do
+			t[i] = tostring(v)
+		end
+		local msg
+		-- empty table means parameter is nil!
+		if #t == 0 then
+			msg = "nil\n"
+		else
+			msg = table.concat(t," ") .. "\n"
+		end
+		app.stdin:send(msg)
+	end
+end
+
 function app:init()
-	self.stdin = socket.tcp()
-	self.stdin:close()
-	self.stdin:setfd(0)
 	self.timeout = 0.05
 	self.wait_readables = {}
 	self.wait_writables = {}
@@ -41,7 +62,21 @@ function app:init()
 	self.codec = codec.new(config.proto)
 	self.config = config
 	self.message_id = 0
-	self:ctl("add","read",self.stdin)
+	self.os_is_windows = os.getenv("HOME") == nil
+	if self.os_is_windows then
+		print(string.format("detect os is window\nuse telnet %s %s to control it",host,port))
+		-- stdin cann't select in window,so use a socket to replace it!
+		local host = "127.0.0.1"
+		local port = 6667
+		self.listen_stdin = socket.bind(host,port)
+		self:ctl("add","read",self.listen_stdin)
+	else
+		-- linux
+		self.stdin = socket.tcp()
+		self.stdin:close()
+		self.stdin:setfd(0)
+		self:ctl("add","read",self.stdin)
+	end
 end
 
 
@@ -59,13 +94,37 @@ end
 function app:dispatch_message()
 	local readable,writable,err = socket.select(self.wait_readables,self.writables,self.timeout)
 	for i,sock in ipairs(readable) do
-		if sock == self.stdin then
-			local cmd = io.read("*l")
+		if sock == self.listen_stdin then
+			if self.stdin then
+				self:ctl("del","read",self.stdin)
+				self.stdin:close()
+			end
+			self.stdin = self.listen_stdin:accept()
+			self:ctl("add","read",self.stdin)
+			self:usage()
+		elseif sock == self.stdin then
+			local cmd
+			if self.os_is_windows then
+				local r,err,part = self.stdin:receive("*l")
+				if err then
+					raw_print("stdin ",err)
+					self:ctl("del","read",self.stdin)
+					self.stdin:close()
+					self.stdin = nil
+				end
+				cmd = r or part
+			else
+				cmd = io.read("*l")
+			end
 			local func = parse_cmd(cmd)
-			local result = table.pack(xpcall(func,debug.traceback))
-			local ok = table.remove(result,1)
-			if #result > 0 then
-				print(table.unpack(result))
+			if func then
+				local result = table.pack(xpcall(func,debug.traceback))
+				local ok = table.remove(result,1)
+				if #result > 0 then
+					print(table.unpack(result))
+				end
+			else
+				print(nil)
 			end
 		else
 			local clientobj = self.sock_client[sock]

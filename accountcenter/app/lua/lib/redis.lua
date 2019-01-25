@@ -9,14 +9,10 @@ function _M:new(config)
 		db:set_timeout(config.timeout)
 	end
 	local ok,err = db:connect(config.host,config.port)
-	if not ok then
-		return nil,err
-	end
+	assert(ok,err)
 	if config.auth then
 		ok,err = db:auth(config.auth)
-		if not ok then
-			return nil,err
-		end
+		assert(ok,err)
 	end
 	return db
 end

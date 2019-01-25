@@ -231,10 +231,10 @@ function acctmgr.addrole(acct,appid,serverid,role)
 		--collection:update({appid=appid,roleid=roleid,},role,1,0)
 		collection:insert({role})
 		mongo:close(conn)
-		table.insert(rolelist,roleid)
-		acctmgr.saveroles(acct,appid,rolelist)
-		return Answer.code.OK
 	end
+	table.insert(rolelist,roleid)
+	acctmgr.saveroles(acct,appid,rolelist)
+	return Answer.code.OK
 end
 
 function acctmgr.getrole(appid,roleid)
@@ -368,13 +368,10 @@ function acctmgr.genroleid(appid,idkey,minroleid,maxroleid)
 end
 
 function acctmgr.gentoken(input)
-	local data = {
-		input = input,
-		time = os.time(),
-		rand = math.random(1,1000000),
-	}
-	local str = cjson.encode(data)
+	local now = ngx.now()
+	local str = tostring(input) .. now
 	local md5 = resty_md5:new()
+	str = str .. tostring(md5)
 	md5:update(str)
 	return resty_string.to_hex(md5:final())
 end

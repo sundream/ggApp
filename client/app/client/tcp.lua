@@ -160,7 +160,7 @@ function tcp:onmessage(msg)
 	end
 	local message = app.codec:unpack_message(msg)
 	if self.verbose then
-		self:say(table.dump(message))
+		self:say("\n"..table.dump(message))
 	end
 	local protoname = message.proto
 	local callback = self:wakeup(protoname)
@@ -186,4 +186,3 @@ end
 tcp.ignore_one = tcp.wakeup
 
 return tcp
-

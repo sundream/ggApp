@@ -14,9 +14,9 @@ def sendmail(to_list,subject,content):
     msg["From"] = me
     msg["To"] = to_list
     if type(to_list) == types.ListType:
-            msg["To"] = " ".join(to_list)
+            msg["To"] = ",".join(to_list)
     if type(to_list) == str:
-        to_list = to_list.split()
+        to_list = to_list.split(",")
     try:
        server = smtplib.SMTP()
        #print "start connect"

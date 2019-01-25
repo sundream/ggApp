@@ -203,7 +203,7 @@ function kcp:onmessage(msg)
 	end
 	local message = app.codec:unpack_message(msg)
 	if self.verbose then
-		self:say(table.dump(message))
+		self:say("\n"..table.dump(message))
 	end
 	local protoname = message.proto
 	local callback = self:wakeup(protoname)

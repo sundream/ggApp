@@ -74,7 +74,7 @@ end
 --	2. 创建角色时不经过账号中心(即不会校验账号的存在性)
 function entergame(tcpobj,acct,roleid,token)
 	local function fail(fmt,...)
-		fmt = string.format("[linktype=%s,name=%s,%s#%s] %s",tcpobj.linktype,tcpobj.name,tcpobj.account or acct,roleid,fmt)
+		fmt = string.format("[linktype=%s,account=%s,roleid=%s] %s",tcpobj.linktype,tcpobj.account or acct,roleid,fmt)
 		print(string.format(fmt,...))
 	end
 	local name = tostring(roleid)
@@ -127,7 +127,7 @@ function entergame(tcpobj,acct,roleid,token)
 					end
 					local role = request.role
 					roleid = assert(role.roleid)
-					print(string.format("auto createrole: account=%s,roleid=%s",acct,roleid))
+					print(string.format("op=createrole,account=%s,roleid=%s",acct,roleid))
 					entergame(tcpobj,acct,roleid,token)
 				end)
 				return
@@ -169,7 +169,7 @@ end
 -- 类似entergame,但是会先进行账密校验,账号不存在还会自动注册账号
 function quicklogin(tcpobj,acct,roleid)
 	local function fail(fmt,...)
-		fmt = string.format("[linktype=%s,name=%s,%s#%s] %s",tcpobj.linktype,tcpobj.name,tcpobj.account or acct,roleid,fmt)
+		fmt = string.format("[linktype=%s,account=%s,roleid=%s] %s",tcpobj.linktype,tcpobj.account or acct,roleid,fmt)
 		print(string.format(fmt,...))
 	end
 	local passwd = "1"
@@ -197,7 +197,7 @@ function quicklogin(tcpobj,acct,roleid)
 			acct = acct,
 			passwd = passwd,
 			sdk = "my",
-			channel = "my",
+			platform = "my",
 		})
 		local response,status = http.request(url,req)
 		if not response or status ~= 200 then
@@ -207,13 +207,13 @@ function quicklogin(tcpobj,acct,roleid)
 		response = unpack_response(response)
 		local code = response.code
 		if code ~= Answer.code.OK then
-			fail("register fail: code=%s,message=%s",code,Answer.message[code])
+			fail("register fail: code=%s,message=%s",code,response.message)
 			return
 		end
 		quicklogin(tcpobj,acct,roleid)
 		return
 	elseif code ~= Answer.code.OK then
-		fail("login fail: code=%s,message=%s",code,Answer.message[code])
+		fail("login fail: code=%s,message=%s",code,response.message)
 		return
 	end
 	local token = response.data.token

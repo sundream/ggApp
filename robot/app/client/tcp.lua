@@ -1,3 +1,4 @@
+local skynet = require "skynet"
 local socket = require "skynet.socket"
 local crypt = require "skynet.crypt"
 local socket_proxy = require "socket_proxy"
@@ -17,7 +18,7 @@ function tcp.new()
 		message_id = 0,
 		session = 0,
 		sessions = {},
-		verbose = true,  -- default: print recv message
+		verbose = false,
 		last_recv = "",
 		wait_proto = {},
 		secret = nil	-- 密钥
@@ -32,7 +33,7 @@ function tcp:connect(host,port)
 	local linkid = socket.open(host,port)
 	self.linkid = linkid
 	socket_proxy.subscribe(linkid,0)
-	self:say("connect")
+	--self:say("connect")
 end
 
 function tcp:send_request(protoname,request,callback)
@@ -84,7 +85,7 @@ function tcp:recv_message(msg)
 end
 
 function tcp:close()
-	print(self.linkid,"close")
+	--self:say("close")
 	socket_proxy.close(self.linkid)
 end
 
@@ -93,7 +94,7 @@ function tcp:quite()
 end
 
 function tcp:say(...)
-	print(string.format("[linktype=%s]",self.linktype),...)
+	skynet.error(string.format("[linkid=%s,linktype=%s]",self.linkid,self.linktype),...)
 end
 
 function tcp:onmessage(msg)
@@ -113,7 +114,7 @@ function tcp:onmessage(msg)
 	end
 	local message = self.codec:unpack_message(msg)
 	if self.verbose then
-		print(string.format("[linkid=%s]\n%s",self.linkid,table.dump(message)))
+		self:say("\n"..table.dump(message))
 	end
 	local protoname = message.proto
 	local callback = self:wakeup(protoname)

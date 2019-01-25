@@ -4,13 +4,13 @@ return {
 	db = {
 		type = "redis",
 		config = {
-			host = "172.16.100.120",
+			host = "127.0.0.1",
 			port = 6385,
 			auth = "redispwd",
 		},
 		--type = "mongodb",
 		--config = {
-		--	host = "172.16.100.120",
+		--	host = "127.0.0.1",
 		--	port = 29017,
 		--	username = nil,
 		--	password = nil,

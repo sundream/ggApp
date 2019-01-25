@@ -51,25 +51,27 @@ Table of Contents
 		```
 		sudo yum install -y protobuf-compiler protobuf-c-compiler readline-devel autoconf git subversion telnet nc libcurl-devel
 		```
-	* [lua-5.3.5](https://www.lua.org/download.html)
 	* [openresty-1.13.6.2](https://openresty.org/en/installation.html)
-	* python-2.7.15
-		```
-		curl -R -O https://www.python.org/ftp/python/2.7.15/Python-2.7.15.tgz
-		tar -zxvf Python-2.7.15.tgz
-		cd Python-2.7.15
-		./configure
-		make
-		sudo make install
-		```
-	* luarocks for lua5.3
-		```
-		git clone https://github.com/luarocks/luarocks
-		cd luarocks
-		./configure --lua-version=5.3 --with-lua-include=/usr/local/include
-		make build
-		sudo make install
-		```
+
+	* 其他工具(非必要安装)
+		* [lua-5.3.5](https://www.lua.org/download.html)
+		* python-2.7.15
+			```
+			curl -R -O https://www.python.org/ftp/python/2.7.15/Python-2.7.15.tgz
+			tar -zxvf Python-2.7.15.tgz
+			cd Python-2.7.15
+			./configure
+			make
+			sudo make install
+			```
+		* luarocks for lua5.3
+			```
+			git clone https://github.com/luarocks/luarocks
+			cd luarocks
+			./configure --lua-version=5.3 --with-lua-include=/usr/local/include
+			make build
+			sudo make install
+			```
 
 * 安装DB(框架默认使用redis)
 	* [安装redis](https://github.com/sundream/ggApp/blob/master/tools/db/redis/README.md)
