@@ -63,6 +63,7 @@ function cserver:on_tick()
 		tcp_port = tonumber(skynet.getenv("tcp_port")),
 		kcp_port = tonumber(skynet.getenv("kcp_port")),
 		websocket_port = tonumber(skynet.getenv("websocket_port")),
+		http_port = tonumber(skynet.getenv("http_port")),
 		debug_port = tonumber(skynet.getenv("debug_port")),
 	}
 	local accountcenter = skynet.getenv("accountcenter")
