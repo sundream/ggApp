@@ -64,10 +64,10 @@ function app:init()
 	self.message_id = 0
 	self.os_is_windows = os.getenv("HOME") == nil
 	if self.os_is_windows then
-		print(string.format("detect os is window\nuse telnet %s %s to control it",host,port))
 		-- stdin cann't select in window,so use a socket to replace it!
 		local host = "127.0.0.1"
 		local port = 6667
+		print(string.format("detect os is window\nuse telnet %s %s to control it",host,port))
 		self.listen_stdin = socket.bind(host,port)
 		self:ctl("add","read",self.listen_stdin)
 	else

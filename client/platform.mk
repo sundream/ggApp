@@ -1,5 +1,5 @@
 PLAT ?= none
-PLATS = linux freebsd macosx
+PLATS = linux freebsd macosx mingw
 
 CC ?= gcc
 
