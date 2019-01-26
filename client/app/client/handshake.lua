@@ -25,7 +25,7 @@ function handshake._do_handshake(agent,msg)
 	local proto = request.proto
 	assert(not agent.handshake_result)
 	if proto == "GS2C_HandShake_Challenge" then
-		--第一步: [GS2C]收到服务端发过来的挑战码和随机串
+		--第一步: [GS2C]发送挑战码challenge(用于校验后续协商出的密钥是否一致)+服务端随机串serverkey
 		if agent.handshake_step ~= nil then
 			return false,"challenge first"
 		end
@@ -42,7 +42,7 @@ function handshake._do_handshake(agent,msg)
 		local clientkey = crypt.randomkey()
 		local secret = crypt.dhsecret(clientkey,serverkey)
 		agent.secret = secret
-		--第二步: [C2GS]发送客户端随机串
+		--第二步: [C2GS]收到客户端发过来的随机串clientkey,根据clientkey+serverkey计算出密钥
 		agent.handshake_step = 2
 		local msg = handshake.pack_request({
 			proto="C2GS_HandShake_ClientKey",
@@ -50,7 +50,7 @@ function handshake._do_handshake(agent,msg)
 			master_linkid = agent.master_linkid,
 		})
 		agent:send(msg)
-		--第三步: [C2GS]发送校验密钥请求
+		--第三步: [C2GS]客户端根据clientkey+serverkey计算出相同秘钥,加密challenge后发送给服务器,要求校验秘钥
 		agent.handshake_step = 3
 		local encrypt = crypt.hmac64(challenge,secret)
 		local msg = handshake.pack_request({
@@ -62,7 +62,7 @@ function handshake._do_handshake(agent,msg)
 		if agent.handshake_step ~= 3 then
 			return false,"skip handshake step 3?"
 		end
-		--第四步: [GS2C]收到服务端发过来的握手结果
+		--第四步: [GS2C]发送密钥校验结果
 		agent.handshake_step = 4
 		local result = request.result
 		agent.handshake_result = result

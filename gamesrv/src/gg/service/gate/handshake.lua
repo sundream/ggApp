@@ -21,7 +21,7 @@ function handshake.pack_request(tbl)
 end
 
 
---第一步: [GS2C]发送挑战码(用于校验后续协商出的密钥是否一致)+服务端随机串
+--第一步: [GS2C]发送挑战码challenge(用于校验后续协商出的密钥是否一致)+服务端随机串serverkey
 function handshake.pack_challenge(agent,encrypt_key)
 	assert(agent.handshake_step == nil)
 	agent.handshake_step = 1
@@ -49,7 +49,7 @@ function handshake._do_handshake(agent,msg)
 	local proto = request.proto
 	assert(not agent.handshake_result)
 	if proto == "C2GS_HandShake_ClientKey" then
-		--第二步: [C2GS]收到客户端发过来的随机串,根据clientkey+serverkey计算出密钥
+		--第二步: [C2GS]收到客户端发过来的随机串clientkey,根据clientkey+serverkey计算出密钥
 		if agent.handshake_step ~= 1 then
 			return false,"skip handshake step 1?"
 		end
@@ -61,7 +61,7 @@ function handshake._do_handshake(agent,msg)
 		local serverkey = agent.serverkey
 		agent.secret = crypt.dhsecret(clientkey,serverkey)
 	elseif proto == "C2GS_HandShake_CheckSecret" then
-		--第三步: [C2GS]收到客户端的校验密钥请求
+		--第三步: [C2GS]客户端根据clientkey+serverkey计算出相同秘钥,加密challenge后发送给服务器,要求校验秘钥
 		if agent.handshake_step ~= 2 then
 			return false,"skip handshake step 2?"
 		end
@@ -89,7 +89,7 @@ function handshake.do_handshake(agent,msg)
 	return ok,errmsg
 end
 
---第四步: [C2GS]发送密钥校验结果
+--第四步: [GS2C]发送密钥校验结果
 function handshake.pack_result(agent,result)
 	assert(agent.handshake_step == 3)
 	agent.handshake_step = 4

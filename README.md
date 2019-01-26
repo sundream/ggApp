@@ -1,6 +1,6 @@
 ggApp
 =====
-ggApp是一个基于[gg](https://github.com/sundream/gg)的游戏服务器示例,
+ggApp是一个基于[gg](https://github.com/sundream/ggApp/tree/master/gamesrv/src/gg)的游戏服务器示例,
 引擎使用[skynet](https://github.com/cloudwu/skynet),上层使用Lua开发。
 
 Table of Contents

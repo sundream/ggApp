@@ -1,11 +1,8 @@
 syntax = "proto3";
 
-// 协议构成
-// length(2 byte) + MessageHeader + 消息头中对应消息的数据(如果无数据可以不发，只发消息头)
-// 消息头和消息内容编码格式均为length(2 byte) + protobuf编码的数据
 message MessageHeader {
-	int32 type = 1;	// 协议类型
-	int32 session = 2;	// 会话ID
-	int32 ud = 3;		// 用户数据(可以自定义,这里我们用来传包序号)
-	bool request = 4;	// true--request,false--response
+	int32 type = 1;	        // 消息ID
+	int32 session = 2;	// rpc会话ID,无需对方回复时可以发0,否则,保证唯一
+	int32 ud = 3;		// 用户自定义数据,如我们可以用来传包序号(要求唯一,严格递增)
+	bool request = 4;	// true--请求,false--回复
 }
