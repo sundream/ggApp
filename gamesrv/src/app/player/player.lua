@@ -24,7 +24,7 @@ function cplayer:init(pid)
 		thisweek2 = self.thisweek2,
 		thismonth = self.thismonth,
 	}
-	self.compnent = {
+	self.component = {
 		attr = self.attr,
 		data = self.data,
 		time = self.time,
@@ -39,12 +39,12 @@ function cplayer:load(toload)
 		return
 	end
 	for name,data in pairs(toload) do
-		local obj = self.compnent[name]
+		local obj = self.component[name]
 		if obj then
 			obj:load(data)
 		elseif type(data) == "table" then
 			-- 纯数据组件
-			self.compnent[name] = data
+			self.component[name] = data
 		end
 	end
 	self.loadstate = "loaded"
@@ -53,7 +53,7 @@ end
 
 function cplayer:save()
 	local data = {}
-	for name,obj in pairs(self.compnent) do
+	for name,obj in pairs(self.component) do
 		if not obj.nosavetodatabase then
 			if obj.save then
 				data[name] = obj:save()
@@ -72,7 +72,7 @@ function cplayer:isloaded()
 end
 
 function cplayer:onload()
-	for k,obj in pairs(self.compnent) do
+	for k,obj in pairs(self.component) do
 		if obj.onload then
 			obj:onload(self)
 		elseif obj.exec then
@@ -199,7 +199,7 @@ function cplayer:oncreate()
 	local my_serverid = cserver:serverid()
 	logger.log("info","login","op=oncreate,serverid=%s,account=%s,pid=%s,linktype=%s,linkid=%s,ip=%s,port=%s,version=%s,name=%s",
 		my_serverid,self.account,self.pid,self.linktype,self.linkid,self.ip,self.port,self.version,self.name)
-	for k,obj in pairs(self.compnent) do
+	for k,obj in pairs(self.component) do
 		obj.loadstate = "loaded"
 		if obj.oncreate then
 			obj:oncreate(self)
@@ -250,7 +250,7 @@ function cplayer:onlogoff(reason)
 	local from_serverid = self.kuafu_forward and self.kuafu_forward.from_serverid
 	logger.log("info","login","op=onlogoff,serverid=%s,from_serverid=%s,account=%s,pid=%s,linktype=%s,linkid=%s,ip=%s,port=%s,version=%s,reason=%s",
 		my_serverid,from_serverid,self.account,self.pid,self.linktype,self.linkid,self.ip,self.port,self.version,reason)
-	for k,obj in pairs(self.compnent) do
+	for k,obj in pairs(self.component) do
 		if obj.onlogoff then
 			obj:onlogoff(self,reason)
 		elseif obj.exec then
@@ -273,7 +273,7 @@ end
 function cplayer:ondisconnect(reason)
 	logger.log("info","login","op=ondisconnect,pid=%s,linkid=%s,ip=%s,port=%s,reason=%s",
 		self.pid,self.linkid,self.ip,self.port,reason)
-	for k,obj in pairs(self.compnent) do
+	for k,obj in pairs(self.component) do
 		if obj.ondisconnect then
 			obj:ondisconnect(self,reason)
 		elseif obj.exec then
@@ -283,7 +283,7 @@ function cplayer:ondisconnect(reason)
 end
 
 function cplayer:ondayupdate()
-	for k,obj in pairs(self.compnent) do
+	for k,obj in pairs(self.component) do
 		if obj.ondayupdate then
 			obj:ondayupdate()
 		elseif obj.exec then
@@ -293,7 +293,7 @@ function cplayer:ondayupdate()
 end
 
 function cplayer:onmondayupdate()
-	for k,obj in pairs(self.compnent) do
+	for k,obj in pairs(self.component) do
 		if obj.onmondayupdate then
 			obj:onmondayupdate()
 		elseif obj.exec then
