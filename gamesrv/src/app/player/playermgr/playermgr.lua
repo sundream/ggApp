@@ -186,8 +186,8 @@ function playermgr.starttimer_log_status()
 	local mqlen = skynet.mqlen()
 	local task = skynet.task()
 	local serverid = skynet.getenv("id")
-	logger.log("info","status","serverid=%s,onlinenum=%s,tuoguannum=%s,min_onlinenum=%s,max_onlinenum=%s,linknum=%s,mqlen=%s,task=%s",
-		serverid,playermgr.onlinenum,tuoguannum,playermgr.min_onlinenum,playermgr.max_onlinenum,linknum,mqlen,task)
+	logger.log("info","status","serverid=%s,onlinenum=%s,tuoguannum=%s,min_onlinenum=%s,max_onlinenum=%s,linknum=%s,onlinelimit=%s,mqlen=%s,task=%s",
+		serverid,playermgr.onlinenum,tuoguannum,playermgr.min_onlinenum,playermgr.max_onlinenum,linknum,playermgr.onlinelimit,mqlen,task)
 end
 
 return playermgr
