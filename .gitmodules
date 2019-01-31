@@ -22,3 +22,9 @@
 [submodule "gamesrv/src/gg/like_skynet/3rd/crab"]
 	path = gamesrv/src/gg/like_skynet/3rd/crab
 	url = https://github.com/sundream/crab
+[submodule "gamesrv/src/gg/like_skynet/3rd/lua-aes"]
+	path = gamesrv/src/gg/like_skynet/3rd/lua-aes
+	url = https://github.com/sundream/lua-aes
+[submodule "gamesrv/src/gg/like_skynet/3rd/lua-webclient"]
+	path = gamesrv/src/gg/like_skynet/3rd/lua-webclient
+	url = https://github.com/sundream/lua-webclient

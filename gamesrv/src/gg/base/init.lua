@@ -12,6 +12,9 @@ netpack = require "skynet.netpack"
 md5 = require "md5"
 crypt = require "skynet.crypt"
 profile = require "skynet.profile"
+aes128 = require "aes128"
+aes192 = require "aes192"
+aes256 = require "aes256"
 
 
 require "gg.base.class"

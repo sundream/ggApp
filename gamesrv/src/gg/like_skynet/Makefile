@@ -7,7 +7,8 @@ SERVICE_PATH ?= service
 CSERVICE_PATH ?= cservice
 
 LUA_INC ?= $(SKYNET_PATH)/3rd/lua
-CFLAGS = -g -O2 -Wall -I$(LUA_INC) $(MYFLAGS)
+LUA_LIB ?= $(SKYNET_PATH)/3rd/lua/liblua.a
+CFLAGS = -g -O2 -Wall -I$(LUA_INC) $(LUA_LIB) $(MYFLAGS)
 
 $(LUALIB_PATH):
 	mkdir -p $(LUALIB_PATH)
@@ -62,10 +63,30 @@ $(LUACLIB_PATH)/lfs.so : 3rd/lfs/src/lfs.c
 $(LUACLIB_PATH)/lutil.so : 3rd/util/lutil.c
 	$(CC) $(CFLAGS) $(SHARED) $^ -o $@
 
+# lua-webclient
+$(LUACLIB_PATH)/webclient.so : 3rd/lua-webclient/webclient.c
+	$(CC) $(CFLAGS) $(SHARED) $^ -o $@ -lcurl
+
+$(SERVICE_PATH)/webclient.lua : 3rd/lua-webclient/webclient.lua
+	cp $^ $@
+
+# aes128
+$(LUACLIB_PATH)/aes128.so : 3rd/lua-aes/aes.c 3rd/lua-aes/laes.c
+	$(CC) $(CFLAGS) $(SHARED) -DAES128=1 $^ -o $@
+
+# aes192
+$(LUACLIB_PATH)/aes192.so : 3rd/lua-aes/aes.c 3rd/lua-aes/laes.c
+	$(CC) $(CFLAGS) $(SHARED) -DAES192=1 -DUSE_IN_SKYENT $^ -o $@
+
+# aes256
+$(LUACLIB_PATH)/aes256.so : 3rd/lua-aes/aes.c 3rd/lua-aes/laes.c
+	$(CC) $(CFLAGS) $(SHARED) -DAES256=1 $^ -o $@
+
 
 LUALIB = socket_proxy.lua websocket.lua
-LUACLIB = cjson.so crab.so utf8.so pb.so lkcp.so lfs.so lutil.so
-SERVICE = socket_proxyd.lua
+LUACLIB = cjson.so crab.so utf8.so pb.so lkcp.so lfs.so lutil.so webclient.so \
+		  aes128.so aes192.so aes256.so
+SERVICE = socket_proxyd.lua webclient.lua
 CSERVICE = package.so
 
 all : $(LUALIB_PATH) $(LUACLIB_PATH) $(SERVICE_PATH) $(CSERVICE_PATH) \
@@ -87,6 +108,8 @@ update3rd:
 	rm -rf 3rd/lua-protobuf
 	rm -rf 3rd/skynet_package
 	rm -rf 3rd/skynet_websocket
+	rm -rf 3rd/lua-webclient
+	rm -rf 3rd/lua-aes
 	-git submodule update --init
 
 .PHONY: all clean update3rd

@@ -13,6 +13,8 @@
 * 运行
 	```
 	cd ~/ggApp/robot/3rd/skynet
+	# 首次运行创建log目录
+	mkdir -p ../../log
 	./skynet ../../app/config/robot.config &
 	telnet 127.0.0.1 6666
 	启动若干机器人:

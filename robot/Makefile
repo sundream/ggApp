@@ -7,7 +7,8 @@ SERVICE_PATH ?= $(SKYNET_PATH)/service
 CSERVICE_PATH ?= $(SKYNET_PATH)/cservice
 
 LUA_INC ?= $(SKYNET_PATH)/3rd/lua
-CFLAGS = -g -O2 -Wall -I$(LUA_INC) $(MYFLAGS)
+LUA_LIB ?= $(SKYNET_PATH)/3rd/lua/liblua.a
+CFLAGS = -g -O2 -Wall -I$(LUA_INC) $(LUA_LIB) $(MYFLAGS)
 
 # skynet_package
 $(CSERVICE_PATH)/package.so : 3rd/skynet_package/service_package.c

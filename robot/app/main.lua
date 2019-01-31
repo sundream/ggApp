@@ -6,7 +6,7 @@ Welcome,I'am a robot(version: 0.0.1)
 usage:
 	telnet 127.0.0.1 %s to control it
 	#从1000001角色ID开始启动100个机器人
-	start app/service/newrobot 100 1000000
+	start app/service/newrobot 100 1000001
 ]]
 
 
