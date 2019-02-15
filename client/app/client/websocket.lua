@@ -8,10 +8,7 @@ local mt = {__index = websocket}
 function websocket.new(opts)
 	opts = opts or {}
 	opts.timeout = opts.timeout or 0.05
-	if opts.send_unmasked == nil then
-		opts.send_unmasked = true
-	end
-	local sock = websocket_client.new(opts)
+	local sock = websocket_client:new(opts)
 	local self = {
 		linktype = "websocket",
 		sock = sock,
@@ -19,6 +16,7 @@ function websocket.new(opts)
 		session = 0,
 		sessions = {},
 		verbose = true,  -- default: print recv message
+		last_recv = "",
 		wait_proto = {},
 		secret = nil	-- 密钥
 	}
@@ -95,32 +93,40 @@ function websocket:dispatch_message()
 		self:close()
 		return
 	end
+	local message
 	if typ == "ping" then
 		self.sock:send_pong(data)
 	elseif typ == "pong" then
-	elseif typ == "text" then
-		local ok,err = xpcall(function ()
-				self:onmessage(data)
-			end,debug.traceback)
-		if not ok then
-			self:say(err)
-		end
-	elseif typ == "binary" then
-		local ok,err = xpcall(function ()
-				self:onmessage(data)
-			end,debug.traceback)
-		if not ok then
-			self:say(err)
-		end
-	elseif typ == "continuation" then
 	elseif typ == "close" then
 		self:close()
+	elseif typ == "text" then
+		self.last_recv = self.last_recv .. data
+		-- fin
+		if err ~= "again" then
+			message = self.last_recv
+			self.last_recv = ""
+		end
+	elseif typ == "binary" then
+		self.last_recv = self.last_recv .. data
+		-- fin
+		if err ~= "again" then
+			message = self.last_recv
+			self.last_recv = ""
+		end
+	end
+	if message then
+		local ok,err = xpcall(function ()
+			self:onmessage(message)
+		end,debug.traceback)
+		if not ok then
+			self:say(err)
+		end
 	end
 end
 
-function websocket:close()
+function websocket:close(code,msg)
 	self:say("close")
-	self.sock:close()
+	self.sock:close(code,msg)
 	app:unattach(self.sock.sock,self)
 	app:ctl("del","read",self.sock.sock)
 	--app:ctl("del","write",self.sock.sock)

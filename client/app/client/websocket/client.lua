@@ -60,11 +60,12 @@ function _M.new(self, opts)
         return nil, err
     end
 
-    local max_payload_len, send_unmasked, timeout
+    local max_payload_len, send_masked, timeout,force_masking
     if opts then
         max_payload_len = opts.max_payload_len
-        send_unmasked = opts.send_unmasked
+        send_masked = opts.send_masked
         timeout = opts.timeout
+        force_masking = opts.force_masking
 
         if timeout then
             sock:settimeout(timeout)
@@ -74,7 +75,8 @@ function _M.new(self, opts)
     return setmetatable({
         sock = sock,
         max_payload_len = max_payload_len or 65535,
-        send_unmasked = send_unmasked,
+        send_masked = send_masked,
+        force_masking = force_masking,
     }, mt)
 end
 
@@ -216,7 +218,7 @@ function _M.recv_frame(self)
         return nil, nil, "not initialized yet"
     end
 
-    local data, typ, err =  _recv_frame(sock, self.max_payload_len, false)
+    local data, typ, err =  _recv_frame(sock, self.max_payload_len, self.force_masking)
     if not data and not str_find(err, ": timeout", 1, true) then
         self.fatal = true
     end
@@ -239,8 +241,7 @@ local function send_frame(self, fin, opcode, payload)
     end
 
     local bytes, err = _send_frame(sock, fin, opcode, payload,
-                                   self.max_payload_len,
-                                   not self.send_unmasked)
+                                   self.max_payload_len,self.send_masked)
     if not bytes then
         self.fatal = true
     end
@@ -292,7 +293,7 @@ function _M.send_pong(self, data)
 end
 
 
-function _M.close(self)
+function _M.close(self,code,msg)
     if self.fatal then
         return nil, "fatal error already happened"
     end
@@ -303,7 +304,7 @@ function _M.close(self)
     end
 
     if not self.closed then
-        local bytes, err = send_close(self)
+        local bytes, err = send_close(self,code,msg)
         if not bytes then
             return nil, "failed to send close frame: " .. err
         end

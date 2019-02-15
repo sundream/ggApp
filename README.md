@@ -114,7 +114,7 @@ Table of Contents
 		```
 		cd ~/ggApp
 		# gamesrv_1为服务器名
-		ls -s gamesrv gamesrv_1
+		ln -s gamesrv gamesrv_1
 		mkdir -p gamesrv_1/log
 		```
 	* 直接启动
