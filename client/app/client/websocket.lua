@@ -1,21 +1,24 @@
-local socket = require "socket"
+local websocket_client = require "app.client.websocket.client"
 local crypt = require "crypt"
 local handshake = require "app.client.handshake"
 
-local tcp = {}
-local mt = {__index = tcp}
+local websocket = {}
+local mt = {__index = websocket}
 
-function tcp.new()
-	local sock = socket.tcp()
-	local timeout = 0.05
+function websocket.new(opts)
+	opts = opts or {}
+	opts.timeout = opts.timeout or 0.05
+	if opts.send_unmasked == nil then
+		opts.send_unmasked = true
+	end
+	local sock = websocket_client.new(opts)
 	local self = {
-		linktype = "tcp",
-		timeout = timeout,
+		linktype = "websocket",
 		sock = sock,
+		send_binary = opts.send_binary and true or false,
 		session = 0,
 		sessions = {},
 		verbose = true,  -- default: print recv message
-		last_recv = "",
 		wait_proto = {},
 		secret = nil	-- 密钥
 	}
@@ -25,19 +28,20 @@ function tcp.new()
 	return setmetatable(self,mt)
 end
 
-function tcp:connect(host,port)
-	local ok,errmsg = self.sock:connect(host,port)
+function websocket:connect(host,port)
+	local uri = host
+	if port then
+		uri = string.format("ws://%s:%s",host,port)
+	end
+	local ok,errmsg = self.sock:connect(uri)
 	assert(ok,errmsg)
 	self:say("connect")
-	if self.timeout > 0 then
-		self.sock:settimeout(self.timeout) -- noblock mode
-	end
-	app:attach(self.sock,self)
-	app:ctl("add","read",self.sock)
-	--app:ctl("add","write",self.sock)
+	app:attach(self.sock.sock,self)
+	app:ctl("add","read",self.sock.sock)
+	--app:ctl("add","write",self.sock.sock)
 end
 
-function tcp:send_request(protoname,request,callback)
+function websocket:send_request(protoname,request,callback)
 	local session
 	if callback then
 		self.session = self.session + 1
@@ -56,10 +60,10 @@ function tcp:send_request(protoname,request,callback)
 	if self.secret then
 		bin = crypt.xor_str(bin,self.secret)
 	end
-	return self:send(bin)
+	return assert(self:send(bin))
 end
 
-function tcp:send_response(protoname,response,session)
+function websocket:send_response(protoname,response,session)
 	local ud = app:message_ud()
 	local message = {
 		type = "RESPONSE",
@@ -72,76 +76,65 @@ function tcp:send_response(protoname,response,session)
 	if self.secret then
 		bin = crypt.xor_str(bin,self.secret)
 	end
-	return self:send(bin)
+	return assert(self:send(bin))
 end
 
-function tcp:send(bin)
-	local size = #bin
-	assert(size <= 65535,"package too long")
-	-- len field encode in big-endian
-	local package = string.char(math.floor(size/256)) ..
-		string.char(size%256) ..
-		bin
-	return self.sock:send(package)
-end
-
-function tcp:_unpack_message(text)
-	local size = #text
-	if size < 2 then
-		return nil,text
+function websocket:send(bin)
+	if self.send_binary then
+		return self.sock:send_binary(bin)
+	else
+		return self.sock:send_text(bin)
 	end
-	local s = text:byte(1) * 256 + text:byte(2)
-	if size < s + 2 then
-		return nil,text
-	end
-	return text:sub(3,s+2),text:sub(s+3)
 end
 
-function tcp:dispatch_message()
-	local r,err,part = self.sock:receive("*a")
-	if not r then
-		if err == "closed" then
-			self:close()
-			return
-		else
-			assert(err == "timeout")
-			r = part or ""
+function websocket:dispatch_message()
+	local data,typ,err = self.sock:recv_frame()
+	if not data then
+		if not string.find(err,"timeout") then
 		end
+		self:close()
+		return
 	end
-	self.last_recv = self.last_recv .. r
-	local message
-	while true do
-		message,self.last_recv = self:_unpack_message(self.last_recv)
-		if message then
-			local ok,err = xpcall(function ()
-				self:onmessage(message)
+	if typ == "ping" then
+		self.sock:send_pong(data)
+	elseif typ == "pong" then
+	elseif typ == "text" then
+		local ok,err = xpcall(function ()
+				self:onmessage(data)
 			end,debug.traceback)
-			if not ok then
-				self:say(err)
-			end
-		else
-			break
+		if not ok then
+			self:say(err)
 		end
+	elseif typ == "binary" then
+		local ok,err = xpcall(function ()
+				self:onmessage(data)
+			end,debug.traceback)
+		if not ok then
+			self:say(err)
+		end
+	elseif typ == "continuation" then
+	elseif typ == "close" then
+		self:close()
 	end
 end
 
-function tcp:close()
+function websocket:close()
 	self:say("close")
 	self.sock:close()
-	app:unattach(self.sock,self)
-	app:ctl("del","read",self.sock)
-	--app:ctl("del","write",self.sock)
+	app:unattach(self.sock.sock,self)
+	app:ctl("del","read",self.sock.sock)
+	--app:ctl("del","write",self.sock.sock)
 end
 
-function tcp:quite()
+function websocket:quite()
 	self.verbose = not self.verbose
 end
 
-function tcp:say(...)
+function websocket:say(...)
 	print(string.format("[linktype=%s]",self.linktype),...)
 end
 
-function tcp:onmessage(msg)
+function websocket:onmessage(msg)
 	if not self.handshake_result then
 		local ok,errmsg = handshake.do_handshake(self,msg)
 		if not ok then
@@ -167,20 +160,20 @@ function tcp:onmessage(msg)
 	end
 end
 
-function tcp:wait(protoname,callback)
+function websocket:wait(protoname,callback)
 	if not self.wait_proto[protoname] then
 		self.wait_proto[protoname] = {}
 	end
 	table.insert(self.wait_proto[protoname],callback)
 end
 
-function tcp:wakeup(protoname)
+function websocket:wakeup(protoname)
 	if not self.wait_proto[protoname] then
 		return nil
 	end
 	return table.remove(self.wait_proto[protoname],1)
 end
 
-tcp.ignore_one = tcp.wakeup
+websocket.ignore_one = websocket.wakeup
 
-return tcp
+return websocket

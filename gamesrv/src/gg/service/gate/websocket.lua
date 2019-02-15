@@ -74,9 +74,18 @@ local msg_max_len
 local watchdog
 local timeout		-- 1/100s为单位
 local encrypt_key
+local send_binary
 local codecobj
 local forward_protos = {}
 local handler = {}
+
+local function send_message(ws,data)
+	if send_binary then
+		return ws:send_binary(data)
+	else
+		return ws:send_text(data)
+	end
+end
 
 function handler.check_timeout(linkid)
 	local ws = connection[linkid]
@@ -98,7 +107,7 @@ function handler.on_open(ws)
 	if client_number >= maxclient then
 		skynet.error(string.format("op=overlimit,linktype=websocket,linkid=%s,addr=%s:%s,client_number=%s,maxclient=%s",
 		linkid,addr,client_number,maxclient))
-		ws:close(100,"overlimit")
+		ws:close(1000,"overlimit")
 		return
 	end
 	client_number = client_number + 1
@@ -111,7 +120,7 @@ function handler.on_open(ws)
 		handler.check_timeout(linkid)
 	end
 	if encrypt_key then
-		ws:send_text(handshake.pack_challenge(ws,encrypt_key))
+		send_message(ws,handshake.pack_challenge(ws,encrypt_key))
 	else
 		ws.handshake_result = "OK"
 	end
@@ -122,7 +131,7 @@ function handler.on_message(ws,msg)
 	if not ws.handshake_result then
 		local ok,errmsg = handshake.do_handshake(ws,msg)
 		if ws.handshake_result then
-			ws:send_text(handshake.pack_result(ws,ws.handshake_result))
+			send_message(ws,handshake.pack_result(ws,ws.handshake_result))
 			if ws.handshake_result == "OK" and ws.master_linkid then
 				skynet.error(string.format("op=slaveof,linktype=websocket,master=%s,slave=%s",ws.master_linkid,ws.linkid))
 				skynet.send(watchdog,"lua","client","slaveof",ws.master_linkid,ws.linkid)
@@ -159,6 +168,7 @@ end
 function handler.on_ping(ws,message)
 	--print("on_ping",ws.linkid,message)
 	ws.active = skynet.now()
+	ws:send_pong(message)
 end
 
 function handler.on_pong(ws,message)
@@ -173,6 +183,7 @@ function CMD.open(conf)
 	timeout = conf.timeout or 0
 	watchdog = assert(conf.watchdog)
 	encrypt_key = conf.encrypt_key
+	send_binary = conf.send_binary and true or false
 	codecobj = codec.new(conf.proto)
 	msg_max_len = assert(conf.msg_max_len)
 	maxclient = assert(conf.maxclient)
@@ -219,7 +230,7 @@ function CMD.write(linkid,message)
 	if secret then
 		msg = crypt.xor_str(msg,secret)
 	end
-	ws:send_text(msg)
+	send_message(ws,msg)
 end
 
 function CMD.close(linkid)

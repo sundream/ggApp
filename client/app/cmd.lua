@@ -9,50 +9,45 @@ end
 
 function help()
 	print([=[
-connect(ip,port,[master_linkid,[name,[timeout]]]) ->
-	tcp connect to ip:port and return a tcpobj
+connect(ip,port,[master_linkid]) ->
+	tcp connect to ip:port and return a linkobj
 	e.g:
-		tcpobj = connect("127.0.0.1",8888)
-quicklogin(tcpobj,account,roleid) ->
+		linkobj = connect("127.0.0.1",8888)
+kcp_connect(ip,port,[master_linkid]) ->
+	kcp connect to ip:port and return a kcpobj
+	e.g:
+		linkobj = kcp_connect("127.0.0.1",8889)
+websocket_connect(ip,port,[master_linkid]) ->
+	websocket connect to ip:port and return a kcpobj
+	e.g:
+		linkobj = websocket_connect("127.0.0.1",8890)
+quicklogin(linkobj,account,roleid) ->
 	use account#roleid to login,if account donn't exist,auto register it
 	if account's role donn't exist,auto create role(roleid may diffrence)
 	e.g:
-		quicklogin(tcpobj,"lgl",1000000)
-entergame(tcpobj,account,roleid) ->
+		quicklogin(linkobj,"lgl",1000000)
+entergame(linkobj,account,roleid) ->
 	use roleid to debuglogin,if role donn't exist,auto create role
 	debuglogin's features:
 		1. client can control the roleid when create role
 		2. do not communicate with account center when create role,
 		so donn't use it except you really understand
 	e.g:
-		entergame(tcpobj,"lgl",1000000)
-tcpobj:send_request(proto,request,[callback]) ->
-	use tcpobj to send a request
+		entergame(linkobj,"lgl",1000000)
+linkobj:send_request(proto,request,[callback]) ->
+	use linkobj to send a request
 	e.g:
-		tcpobj:send_request("C2GS_Ping",{str="hello,world!"})
-tcpobj:send_response(proto,response,session) ->
-	use tcpobj to send a response
-tcpobj:quite() ->
-	stop/start print tcpobj receive message
-
-kcp_connect(ip,port,[master_linkid]) ->
-	kcp connect to ip:port and return a kcpobj
-	e.g:
-		kcpobj = kcp_connect("127.0.0.1",8889)
-kcpobj:send_request(proto,request,[callback]) ->
-	use kcpobj to send a request
-	e.g:
-		kcpobj:send_request("C2GS_Ping",{str="hello,world!"})
-kcpobj:send_response(proto,response,session) ->
-	use kcpobj to send a response
-kcpobj:quite() ->
-	stop/start print kcpobj receive message
+		linkobj:send_request("C2GS_Ping",{str="hello,world!"})
+linkobj:send_response(proto,response,session) ->
+	use linkobj to send a response
+linkobj:quite() ->
+	stop/start print linkobj receive message
 	]=])
 end
 
-function connect(ip,port,master_linkid,name,timeout)
+function connect(ip,port,master_linkid)
 	local tcp = require "app.client.tcp"
-	local tcpobj = tcp.new(name,timeout)
+	local tcpobj = tcp.new()
 	tcpobj.master_linkid = master_linkid
 	tcpobj:connect(ip,port)
 	return tcpobj
@@ -66,6 +61,14 @@ function kcp_connect(ip,port,master_linkid)
 	kcpobj.master_linkid = master_linkid
 	kcpobj:connect(ip,port)
 	return kcpobj
+end
+
+function websocket_connect(ip,port,master_linkid)
+	local websocket = require "app.client.websocket"
+	local wbobj = websocket.new({})
+	wbobj.master_linkid = master_linkid
+	wbobj:connect(ip,port)
+	return wbobj
 end
 
 -- 使用特定角色进入游戏,角色不存在会自动创建,不传递token默认为debug登录,
