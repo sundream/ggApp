@@ -16,9 +16,6 @@
 [submodule "gamesrv/src/gg/like_skynet/3rd/skynet_package"]
 	path = gamesrv/src/gg/like_skynet/3rd/skynet_package
 	url = https://github.com/sundream/skynet_package
-[submodule "gamesrv/src/gg/like_skynet/3rd/skynet_websocket"]
-	path = gamesrv/src/gg/like_skynet/3rd/skynet_websocket
-	url = https://github.com/sundream/skynet_websocket
 [submodule "gamesrv/src/gg/like_skynet/3rd/crab"]
 	path = gamesrv/src/gg/like_skynet/3rd/crab
 	url = https://github.com/sundream/crab
@@ -28,3 +25,6 @@
 [submodule "gamesrv/src/gg/like_skynet/3rd/lua-webclient"]
 	path = gamesrv/src/gg/like_skynet/3rd/lua-webclient
 	url = https://github.com/sundream/lua-webclient
+[submodule "gamesrv/src/gg/like_skynet/3rd/lua-websocket"]
+	path = gamesrv/src/gg/like_skynet/3rd/lua-websocket
+	url = https://github.com/sundream/lua-websocket

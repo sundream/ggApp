@@ -32,9 +32,10 @@ $(LUALIB_PATH)/socket_proxy.lua: 3rd/skynet_package/lualib/socket_proxy.lua
 $(SERVICE_PATH)/socket_proxyd.lua: 3rd/skynet_package/service/socket_proxyd.lua
 	cp $^ $@
 
-# skynet_websocket
-$(LUALIB_PATH)/websocket.lua: 3rd/skynet_websocket/websocket.lua
-	cp $^ $@
+# lua-websocket
+$(LUALIB_PATH)/websocket:
+	mkdir -p $(LUALIB_PATH)/websocket
+	cp 3rd/lua-websocket/lib/websocket/* $(LUALIB_PATH)/websocket
 
 # cjson
 $(LUACLIB_PATH)/cjson.so : 3rd/lua-cjson/strbuf.c 3rd/lua-cjson/fpconv.c 3rd/lua-cjson/lua_cjson.c
@@ -83,7 +84,7 @@ $(LUACLIB_PATH)/aes256.so : 3rd/lua-aes/aes.c 3rd/lua-aes/laes.c
 	$(CC) $(CFLAGS) $(SHARED) -DAES256=1 $^ -o $@
 
 
-LUALIB = socket_proxy.lua websocket.lua
+LUALIB = socket_proxy.lua websocket
 LUACLIB = cjson.so crab.so utf8.so pb.so lkcp.so lfs.so lutil.so webclient.so \
 		  aes128.so aes192.so aes256.so
 SERVICE = socket_proxyd.lua webclient.lua
@@ -107,7 +108,7 @@ update3rd:
 	rm -rf 3rd/lua-cjson
 	rm -rf 3rd/lua-protobuf
 	rm -rf 3rd/skynet_package
-	rm -rf 3rd/skynet_websocket
+	rm -rf 3rd/lua-websocket
 	rm -rf 3rd/lua-webclient
 	rm -rf 3rd/lua-aes
 	-git submodule update --init

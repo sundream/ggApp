@@ -63,7 +63,7 @@ local socket = require "skynet.socket"
 local crypt = require "skynet.crypt"
 local httpd = require "http.httpd"
 local sockethelper = require "http.sockethelper"
-local websocket = require "websocket"
+local websocket = require "websocket.server"
 local codec = require "gg.codec.codec"
 local handshake = require "gg.service.gate.handshake"
 
@@ -102,7 +102,7 @@ function handler.check_timeout(linkid)
 end
 
 function handler.on_open(ws)
-	local linkid = ws.id
+	local linkid = ws.linkid
 	local addr = ws.addr
 	if client_number >= maxclient then
 		skynet.error(string.format("op=overlimit,linktype=websocket,linkid=%s,addr=%s:%s,client_number=%s,maxclient=%s",
@@ -111,7 +111,6 @@ function handler.on_open(ws)
 		return
 	end
 	client_number = client_number + 1
-	ws.linkid = linkid
 	connection[linkid] = ws
 	skynet.error(string.format("op=onconnect,linktype=websocket,linkid=%s,addr=%s",linkid,addr))
 	skynet.send(watchdog,"lua","client","onconnect","websocket",linkid,addr)
@@ -126,7 +125,7 @@ function handler.on_open(ws)
 	end
 end
 
-function handler.on_message(ws,msg)
+function handler._on_message(ws,msg)
 	local linkid = ws.linkid
 	if not ws.handshake_result then
 		local ok,errmsg = handshake.do_handshake(ws,msg)
@@ -152,6 +151,10 @@ function handler.on_message(ws,msg)
 	local message = codecobj:unpack_message(msg)
 	local address = forward_protos[message.proto] or watchdog
 	skynet.send(address,"lua","client","onmessage",linkid,message)
+end
+
+function handler.on_message(ws,msg)
+	xpcall(handler._on_message,skynet.error,ws,msg)
 end
 
 function handler.on_close(ws,code,reason)
@@ -196,13 +199,19 @@ function CMD.open(conf)
 		local code, url, method, header, body = httpd.read_request(sockethelper.readfunc(linkid), 8192)
 		if code == 200 then
 			if header.upgrade == "websocket" then
-				local ws = websocket.new(linkid, header, handler,{
-					addr = addr,
-					msg_max_len = msg_max_len,
-					check_origin = false,
+				local ws,err = websocket:new({
+					sock = linkid,
+					headers = header,
+					max_payload_len = msg_max_len,
+					send_masked = false,
 				})
 				if ws then
-					ws:start()
+					ws.linkid = linkid
+					ws.addr = addr
+					ws:start(handler)
+				else
+					httpd.write_response(sockethelper.writefunc(linkid),400,err)
+					socket.close(linkid)
 				end
 			end
 		else
