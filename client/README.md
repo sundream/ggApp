@@ -14,6 +14,7 @@
 * 运行
 	```
 	cd ~/ggApp
+	# ubuntu-14下可能要执行sudo ln -s /lib/x86_64-linux-gnu/libreadline.so.6 /lib/x86_64-linux-gnu/libreadline.so.7
 	client/3rd/lua/5.3/bin/lua client/app/app.lua
 	// 执行后你将会看到如下提示
 	Game Client 0.0.1 Welcome!
