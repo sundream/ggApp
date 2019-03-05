@@ -19,7 +19,6 @@ return {
 		pbfile = "client/proto/protobuf/all.pb",
 		idfile = "client/proto/protobuf/message_define.lua",
 	},
-	--[[
 	proto = {
 		type = "json",
 	}

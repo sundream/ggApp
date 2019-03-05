@@ -1,4 +1,12 @@
 -- 扩展sproto,使其便于使用
+
+---一个完整的sproto包格式如下
+-- -------------
+-- |header|body|
+-- -------------
+-- header是消息头,是一个sproto消息,一般包含消息ID,会话ID等数据
+-- body是消息体,是一个sproto消息(消息ID在header中指定)
+
 local core = require "sproto.core"
 local sproto = require "sproto"
 

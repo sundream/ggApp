@@ -1,3 +1,11 @@
+---一个完整的protobuf包格式如下
+-- -----------------
+-- |len|header|body|
+-- -----------------
+-- len为2字节大端,表示header的长度
+-- header是消息头,是一个protobuf消息,一般包含消息ID,会话ID等数据
+-- body是消息体,是一个protobuf消息(消息ID在header中指定)
+
 local pb = require "pb"
 
 protobuf = protobuf or setmetatable({},{__index=pb})
@@ -23,8 +31,8 @@ function protobuf:reload()
 	self.message_define = {}
 	local fd = io.open(self.idfile,"rb")
 	for line in fd:lines() do
-		local message_name,message_id = string.match(line,"([%w_]+)%s+=%s+(%d+)")
-		if message_name and message_id then
+		local message_id,message_name = string.match(line,'%[(%d+)%]%s+=%s+"([%w_.]+)"')
+		if message_id and message_name then
 			message_id = assert(tonumber(message_id))
 			assert(self.message_define[message_name] == nil)
 			assert(self.message_define[message_id] == nil)
