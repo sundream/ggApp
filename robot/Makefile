@@ -28,13 +28,22 @@ $(LUACLIB_PATH)/pb.so : 3rd/lua-protobuf/pb.c
 $(LUACLIB_PATH)/cjson.so : 3rd/lua-cjson/strbuf.c 3rd/lua-cjson/fpconv.c 3rd/lua-cjson/lua_cjson.c
 	$(CC) $(CFLAGS) $(SHARED) $^ -o $@
 
+# lkcp
+$(LUACLIB_PATH)/lkcp.so : 3rd/kcp/lkcp.c 3rd/kcp/ikcp.c
+	$(CC) $(CFLAGS) $(SHARED) $^ -o $@
+
 # crypt
 $(LUACLIB_PATH)/crypt.so : 3rd/lua-crypt/lua-crypt.c 3rd/lua-crypt/lsha1.c
 	$(CC) $(CFLAGS) $(SHARED) $^ -o $@
 
+# lua-websocket
+$(LUALIB_PATH)/websocket:
+	mkdir -p $(LUALIB_PATH)/websocket
+	cp 3rd/lua-websocket/lib/websocket/* $(LUALIB_PATH)/websocket
 
-LUALIB = socket_proxy.lua
-LUACLIB = pb.so cjson.so crypt.so
+
+LUALIB = socket_proxy.lua websocket
+LUACLIB = pb.so cjson.so lkcp.so crypt.so
 SERVICE = socket_proxyd.lua
 CSERVICE = package.so
 
@@ -45,9 +54,15 @@ update3rd :
 	git clone https://github.com/sundream/lua-cjson 3rd/lua-cjson
 	git clone https://github.com/sundream/lua-crypt 3rd/lua-crypt
 	git clone https://github.com/sundream/skynet 3rd/skynet
+	git clone https://github.com/sundream/lua-websocket 3rd/lua-websocket
 
 delete3rd :
-	rm -rf 3rd/skynet_package 3rd/lua-protobuf 3rd/lua-cjson 3rd/lua-crypt 3rd/skynet
+	rm -rf 3rd/skynet_package 
+	rm -rf 3rd/lua-protobuf
+	rm -rf 3rd/lua-cjson
+	rm -rf 3rd/lua-crypt
+	rm -rf 3rd/lua-websocket
+	rm -rf 3rd/skynet
 
 all :
 	cd $(SKYNET_PATH) && make $(PLAT)

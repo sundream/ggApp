@@ -71,17 +71,4 @@ _("IMAGE_UPLOAD_SIZE_TOO_BIG",-30001,"上传图片尺寸过大")
 _("IMAGE_UPLOAD_ERR",-30002,"图片上传错误")
 _("PHOTO_NOEXIST",-30003,"头像不存在")
 
--- 房间[-60000,-70000)
-_("ROOM_ISFULL",-40001,"该房间已经满人")
-_("ROOM_HALL_NOEXISTENT",-40002,"该大厅不存在")
-_("ROOM_ROOM_NOEXISTENT",-40003,"该房间不存在")
-_("ROOM_HALL_EXISTENT",-40004,"该大厅已存在")
-_("ROOM_ROOM_CREATEDROOM",-40005,"已经创建过房间")
-_("ROOM_ROOM_FLOWERROR",-40006,"当前房间不处于准备状态")
-_("ROOM_ROOM_STARTFLOWERROR",-40007,"当前房间不处于开始状态")
-_("ROOM_ROOM_YETGUESSUP",-40008,"已经出过拳")
-
-_("REDPACK_NOEXISTENT",-50001,"红包不存在")
-_("REDPACK_OVERDUE",-50002,"红包已过期")
-
 return Answer

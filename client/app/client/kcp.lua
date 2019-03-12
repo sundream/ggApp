@@ -29,11 +29,14 @@ local KcpProtoType = {
 local kcp = {}
 local mt = {__index = kcp}
 
-function kcp.new(linkid)
+local kcp_linkid = 0
+
+function kcp.new()
+	kcp_linkid = kcp_linkid + 1
 	local sock = socket.udp()
 	local self = {
 		linktype = "kcp",
-		linkid = linkid,
+		linkid = kcp_linkid,
 		endpoint_linkid = nil,
 		sock = sock,
 		wait_proto = {},

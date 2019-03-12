@@ -12,11 +12,10 @@
 --	appid		[required] type=string help=appid
 --	acct		[required] type=string help=账号
 --	serverid	[required] type=string help=服务器ID
---	roleid		[optional] type=string help=角色ID,不指定则必选传genroleid,minroleid,maxroleid
---	genroleid	[optional] type=number help=标志自动生成角色ID,同时必须指定minroleid,maxroleid
+--	roleid		[optional] type=string help=角色ID,不指定则必选传genrolekey,minroleid,maxroleid
+--	genrolekey	[optional] type=string help=为genroleid指定key
 --	minroleid	[optional] type=number help=最小角色ID
 --	maxroleid	[optional] type=number help=最大角色ID(不包括此值),区间为[minroleid,maxroleid)
---	genrolekey	[optional] type=string help=为genroleid指定key,不发则为serverid
 --	role		[required] type=table encode=json help=角色数据
 --				role = {
 --					name =		[required] type=string help=名字
@@ -39,9 +38,9 @@
 --	}
 --example:
 --	curl -v 'http://127.0.0.1:8887/api/account/role/add?sign=debug&appid=appid&acct=lgl&serverid=gamesrv_1&role=role_json_data&roleid=1000000'
---	curl -v 'http://127.0.0.1:8887/api/account/role/add?sign=debug&appid=appid&acct=lgl&serverid=gamesrv_1&role=role_json_data&genroleid=1&minroleid=1000000&maxroleid=2000000'
+--	curl -v 'http://127.0.0.1:8887/api/account/role/add?sign=debug&appid=appid&acct=lgl&serverid=gamesrv_1&role=role_json_data&genrolekey=appid&minroleid=1000000&maxroleid=2000000'
 --	curl -v 'http://127.0.0.1:8887/api/account/role/add' -d 'sign=debug&appid=appid&acct=lgl&serverid=gamesrv_1&role=role_json_data&roleid=1000000'
---	curl -v 'http://127.0.0.1:8887/api/account/role/add' -d 'sign=debug&appid=appid&acct=lgl&serverid=gamesrv_1&role=role_json_data&genroleid=1&minroleid=1000000&maxroleid=2000000'
+--	curl -v 'http://127.0.0.1:8887/api/account/role/add' -d 'sign=debug&appid=appid&acct=lgl&serverid=gamesrv_1&role=role_json_data&genrolekey=appid&minroleid=1000000&maxroleid=2000000'
 
 local Answer = require "answer"
 local util = require "server.account.util"
@@ -83,16 +82,15 @@ function handle.exec(args)
 	if request.roleid then
 		roleid = request.roleid
 	else
-		if not (request.genroleid and
+		if not (request.genrolekey and
 			request.minroleid and
 			request.maxroleid) then
 			local response = Answer.response(Answer.code.PARAM_ERR)
-			response.message = string.format("%s|%s",response.message,"'genroleid,minroleid,maxroleid' must appear at same time")
+			response.message = string.format("%s|%s",response.message,"'genrolekey,minroleid,maxroleid' must appear at same time")
 			util.response_json(ngx.HTTP_OK,response)
 			return
 		end
-		local genrolekey = request.genrolekey or serverid
-		roleid = acctmgr.genroleid(appid,genrolekey,request.minroleid,request.maxroleid)
+		roleid = acctmgr.genroleid(appid,request.genrolekey,request.minroleid,request.maxroleid)
 		if not roleid then
 			util.response_json(ngx.HTTP_OK,Answer.response(Answer.code.ROLE_OVERLIMIT))
 			return

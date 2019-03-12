@@ -9,19 +9,18 @@ require "app.codec.init"
 local tcp = {}
 local mt = {__index = tcp}
 
-function tcp.new()
+function tcp.new(opts)
 	local codecobj = codec.new(config.proto)
 	local self = {
 		linkid = nil,
 		linktype = "tcp",
-		codec = codecobj,
-		message_id = 0,
 		session = 0,
 		sessions = {},
-		verbose = false,
-		last_recv = "",
 		wait_proto = {},
-		secret = nil	-- 密钥
+		secret = nil,	-- 密钥
+
+		codec = codecobj,
+		handler = opts.handler,
 	}
 	if config.no_handshake then
 		self.handshake_result = "OK"
@@ -33,59 +32,32 @@ function tcp:connect(host,port)
 	local linkid = socket.open(host,port)
 	self.linkid = linkid
 	socket_proxy.subscribe(linkid,0)
-	--self:say("connect")
-end
-
-function tcp:send_request(protoname,request,callback)
-	local session
-	if callback then
-		self.session = self.session + 1
-		session = self.session
-		self.sessions[session] = callback
+	if self.handler.onconnect then
+		self.handler.onconnect(self)
 	end
-	local ud = self:message_ud()
-	local message = {
-		type = "REQUEST",
-		proto = protoname,
-		session = session,
-		ud = ud,
-		request = request,
-	}
-	local bin = self.codec:pack_message(message)
-	if self.secret then
-		bin = crypt.xor_str(bin,self.secret)
+	skynet.timeout(0,function ()
+		self:dispatch_message()
+	end)
+end
+
+function tcp:dispatch_message()
+	while true do
+		local ok,msg,sz = pcall(socket_proxy.read,self.linkid)
+		if not ok then
+			if self.handler.onclose then
+				self.handler.onclose(self)
+			end
+			break
+		end
+		msg = skynet.tostring(msg,sz)
+		xpcall(self.recv_message,skynet.error,self,msg)
 	end
-	return self:send(bin)
 end
-
-function tcp:send_response(protoname,response,session)
-	local ud = self:message_ud()
-	local message = {
-		type = "RESPONSE",
-		proto = protoname,
-		session = session,
-		ud = ud,
-		response = response,
-	}
-	local bin = self.codec:pack_message(message)
-	if self.secret then
-		bin = crypt.xor_str(bin,self.secret)
-	end
-	return self:send(bin)
-end
-
-function tcp:send(bin)
-	local size = #bin
-	assert(size <= 65535,"package too long")
-	socket_proxy.write(self.linkid,bin)
-end
-
 function tcp:recv_message(msg)
 	self:onmessage(msg)
 end
 
 function tcp:close()
-	--self:say("close")
 	socket_proxy.close(self.linkid)
 end
 
@@ -94,7 +66,7 @@ function tcp:quite()
 end
 
 function tcp:say(...)
-	skynet.error(string.format("[linkid=%s,linktype=%s]",self.linkid,self.linktype),...)
+	skynet.error(string.format("[linktype=%s,linkid=%s]",self.linktype,self.linkid),...)
 end
 
 function tcp:onmessage(msg)
@@ -113,14 +85,54 @@ function tcp:onmessage(msg)
 		msg = crypt.xor_str(msg,self.secret)
 	end
 	local message = self.codec:unpack_message(msg)
-	if self.verbose then
-		self:say("\n"..table.dump(message))
+	if self.handler.onmessage then
+		self.handler.onmessage(self,message)
 	end
 	local protoname = message.proto
 	local callback = self:wakeup(protoname)
 	if callback then
 		callback(self,message)
 	end
+end
+
+function tcp:send_request(protoname,request,callback)
+	local session
+	if callback then
+		self.session = self.session + 1
+		session = self.session
+		self.sessions[session] = callback
+	end
+	local message = {
+		type = "REQUEST",
+		proto = protoname,
+		session = session,
+		request = request,
+	}
+	local bin = self.codec:pack_message(message)
+	if self.secret then
+		bin = crypt.xor_str(bin,self.secret)
+	end
+	return self:send(bin)
+end
+
+function tcp:send_response(protoname,response,session)
+	local message = {
+		type = "RESPONSE",
+		proto = protoname,
+		session = session,
+		response = response,
+	}
+	local bin = self.codec:pack_message(message)
+	if self.secret then
+		bin = crypt.xor_str(bin,self.secret)
+	end
+	return self:send(bin)
+end
+
+function tcp:send(bin)
+	local size = #bin
+	assert(size <= 65535,"package too long")
+	socket_proxy.write(self.linkid,bin)
 end
 
 function tcp:wait(protoname,callback)
@@ -138,11 +150,5 @@ function tcp:wakeup(protoname)
 end
 
 tcp.ignore_one = tcp.wakeup
-
-function tcp:message_ud()
-	-- 消息自定义数据,如生成包序号
-	self.message_id = self.message_id + 1
-	return self.message_id
-end
 
 return tcp

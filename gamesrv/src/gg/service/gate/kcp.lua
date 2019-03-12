@@ -115,9 +115,10 @@ local function udp_send_close(from,my_linkid,endpoint_linkid,cnt)
 	local errcode = 0
 	local buffer = string.pack("<Bi4i4i4",KcpProtoType.FIN,my_linkid,endpoint_linkid,errcode)
 	socket.sendto(bind_socket,from,buffer)
-	if cnt > 1 then
+	cnt = cnt - 1
+	if cnt > 0 then
 		skynet.timeout(50,function ()
-			udp_send_close(from,my_linkid,endpoint_linkid,cnt-1)
+			udp_send_close(from,my_linkid,endpoint_linkid,cnt)
 		end)
 	end
 end

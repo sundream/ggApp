@@ -306,7 +306,7 @@ end
 --@usage thistemp:set("firstset",1,10)
 --@usage thistemp:set("firstset",20)	-- 只将值改成20，超时值不变
 --@usage thistemp:set("firstset",10,20)	-- 值改成10,超时值改成未来20s
-function cthistemp:set(key,val,secs,callback)
+function cthistemp:set(key,val,secs)
 	local expire = self:getexpire(key)
 	local now = os.time()
 	local new_expire

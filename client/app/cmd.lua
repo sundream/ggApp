@@ -53,11 +53,9 @@ function connect(ip,port,master_linkid)
 	return tcpobj
 end
 
-local kcp_linkid = 0
 function kcp_connect(ip,port,master_linkid)
 	local kcp = require "app.client.kcp"
-	kcp_linkid = kcp_linkid + 1
-	local kcpobj = kcp.new(kcp_linkid)
+	local kcpobj = kcp.new()
 	kcpobj.master_linkid = master_linkid
 	kcpobj:connect(ip,port)
 	return kcpobj
@@ -65,7 +63,7 @@ end
 
 function websocket_connect(ip,port,master_linkid)
 	local websocket = require "app.client.websocket"
-	local wbobj = websocket.new({})
+	local wbobj = websocket.new()
 	wbobj.master_linkid = master_linkid
 	wbobj:connect(ip,port)
 	return wbobj
@@ -75,16 +73,16 @@ end
 -- debug登录特点:
 --	1. 创建角色时客户端可以控制角色ID
 --	2. 创建角色时不经过账号中心(即不会校验账号的存在性)
-function entergame(tcpobj,acct,roleid,token)
+function entergame(linkobj,acct,roleid,token)
 	local function fail(fmt,...)
-		fmt = string.format("[linktype=%s,account=%s,roleid=%s] %s",tcpobj.linktype,tcpobj.account or acct,roleid,fmt)
+		fmt = string.format("[linktype=%s,account=%s,roleid=%s] %s",linkobj.linktype,linkobj.account or acct,roleid,fmt)
 		print(string.format(fmt,...))
 	end
 	local name = tostring(roleid)
 	local token = token or "debug"
 	local forward = "entergame"
-	tcpobj:send_request("C2GS_CheckToken",{acct=acct,token=token,forward=forward,version="99.99.99"})
-	tcpobj:wait("GS2C_CheckTokenResult",function (tcpobj,message)
+	linkobj:send_request("C2GS_CheckToken",{acct=acct,token=token,forward=forward,version="99.99.99"})
+	linkobj:wait("GS2C_CheckTokenResult",function (linkobj,message)
 		local request = message.request
 		local status = request.status
 		local code = request.code
@@ -92,25 +90,25 @@ function entergame(tcpobj,acct,roleid,token)
 			fail("checktoken fail: status=%s,code=%s",status,code)
 			return
 		end
-		tcpobj:send_request("C2GS_EnterGame",{roleid=roleid})
-		tcpobj:wait("GS2C_ReEnterGame",function (tcpobj,message)
-			tcpobj:ignore_one("GS2C_EnterGameResult")
+		linkobj:send_request("C2GS_EnterGame",{roleid=roleid})
+		linkobj:wait("GS2C_ReEnterGame",function (linkobj,message)
+			linkobj:ignore_one("GS2C_EnterGameResult")
 			local request = message.request
 			local token = request.token
 			local roleid = request.roleid
 			local go_serverid = request.go_serverid
 			local ip = request.ip
-			local new_tcpobj
-			if tcpobj.linktype == "tcp" then
-				new_tcpobj = connect(ip,request.tcp_port)
-			elseif tcpobj.linktype == "kcp" then
-				new_tcpobj = kcp_connect(ip,request.kcp_port)
+			local new_linkobj
+			if linkobj.linktype == "tcp" then
+				new_linkobj = connect(ip,request.tcp_port)
+			elseif linkobj.linktype == "kcp" then
+				new_linkobj = kcp_connect(ip,request.kcp_port)
 			end
-			tcpobj.child = new_tcpobj
-			entergame(new_tcpobj,acct,roleid,token)
+			linkobj.child = new_linkobj
+			entergame(new_linkobj,acct,roleid,token)
 		end)
-		tcpobj:wait("GS2C_EnterGameResult",function (tcpobj,message)
-			tcpobj:ignore_one("GS2C_ReEnterGame")
+		linkobj:wait("GS2C_EnterGameResult",function (linkobj,message)
+			linkobj:ignore_one("GS2C_ReEnterGame")
 			local request = message.request
 			local status = request.status
 			local code = request.code
@@ -119,8 +117,8 @@ function entergame(tcpobj,acct,roleid,token)
 				return
 			end
 			if code == Answer.code.ROLE_NOEXIST then
-				tcpobj:send_request("C2GS_CreateRole",{acct=acct,name=name,roleid=roleid})
-				tcpobj:wait("GS2C_CreateRoleResult",function (tcpobj,message)
+				linkobj:send_request("C2GS_CreateRole",{acct=acct,name=name,roleid=roleid})
+				linkobj:wait("GS2C_CreateRoleResult",function (linkobj,message)
 					local request = message.request
 					local status = request.status
 					local code = request.code
@@ -131,11 +129,11 @@ function entergame(tcpobj,acct,roleid,token)
 					local role = request.role
 					roleid = assert(role.roleid)
 					print(string.format("op=createrole,account=%s,roleid=%s",acct,roleid))
-					entergame(tcpobj,acct,roleid,token)
+					entergame(linkobj,acct,roleid,token)
 				end)
 				return
 			end
-			tcpobj.account = request.account
+			linkobj.account = request.account
 			fail("login success")
 		end)
 	end)
@@ -170,9 +168,9 @@ local function unpack_response(response)
 end
 
 -- 类似entergame,但是会先进行账密校验,账号不存在还会自动注册账号
-function quicklogin(tcpobj,acct,roleid)
+function quicklogin(linkobj,acct,roleid)
 	local function fail(fmt,...)
-		fmt = string.format("[linktype=%s,account=%s,roleid=%s] %s",tcpobj.linktype,tcpobj.account or acct,roleid,fmt)
+		fmt = string.format("[linktype=%s,account=%s,roleid=%s] %s",linkobj.linktype,linkobj.account or acct,roleid,fmt)
 		print(string.format(fmt,...))
 	end
 	local passwd = "1"
@@ -213,7 +211,7 @@ function quicklogin(tcpobj,acct,roleid)
 			fail("register fail: code=%s,message=%s",code,response.message)
 			return
 		end
-		quicklogin(tcpobj,acct,roleid)
+		quicklogin(linkobj,acct,roleid)
 		return
 	elseif code ~= Answer.code.OK then
 		fail("login fail: code=%s,message=%s",code,response.message)
@@ -221,5 +219,5 @@ function quicklogin(tcpobj,acct,roleid)
 	end
 	local token = response.data.token
 	acct = response.data.acct or acct
-	entergame(tcpobj,acct,roleid,token)
+	entergame(linkobj,acct,roleid,token)
 end

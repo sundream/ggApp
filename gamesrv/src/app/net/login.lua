@@ -148,7 +148,6 @@ function C2GS.CreateRole(linkobj,message)
 			serverid = serverid,
 			role = cjson.encode(role),
 			genrolekey = appid, -- 全服ID统一分配
-			genroleid = 1,
 			minroleid = 1000000,
 			maxroleid = 1000000000,
 		})

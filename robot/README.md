@@ -24,3 +24,9 @@
 	// 日志可见log/skynet.log
 	// 现在默认压测逻辑是发送心跳包,你可以在app/service/robot.lua#onlogin中自定义压测逻辑
 	```
+
+* 关闭
+	```
+	ps -ef | grep robot
+	kill -9 找到的robot进程pid
+	```

@@ -1,47 +1,34 @@
 local skynet = require "skynet"
-local socket = require "skynet.socket"
-local socket_proxy = require "socket_proxy"
+local config = require "app.config.user"
 local tcp = require "app.client.tcp"
+local kcp = require "app.client.kcp"
+local websocket = require "app.client.websocket"
 
-local tcpobj
+local linkobj
 local handler
-
-local function onconnect()
-	if not tcpobj then
-		return
-	end
-	if handler.onconnect then
-		handler.onconnect(tcpobj)
-	end
-	while true do
-		local ok,msg,sz = pcall(socket_proxy.read,tcpobj.linkid)
-		if not ok then
-			if handler.onclose then
-				handler.onclose(tcpobj)
-			end
-			break
-		end
-		msg = skynet.tostring(msg,sz)
-		xpcall(tcpobj.recv_message,skynet.error,tcpobj,msg)
-	end
-end
 
 local CMD = {}
 
 function CMD.connect(conf)
 	local ip = assert(conf.ip)
 	local port = assert(conf.port)
-	tcpobj = tcp.new()
-	tcpobj:connect(ip,port)
-	skynet.timeout(0,onconnect)
+	local gate_type = assert(conf.gate_type)
+	if gate_type == "kcp" then
+		linkobj = kcp.new({handler=handler})
+	elseif gate_type == "websocket" then
+		linkobj = websocket.new({handler=handler})
+	else
+		linkobj = tcp.new({handler=handler})
+	end
+	linkobj:connect(ip,port)
 end
 
 function CMD.close()
-	if not tcpobj then
+	if not linkobj then
 		return
 	end
-	tcpobj:close()
-	tcpobj = nil
+	linkobj:close()
+	linkobj = nil
 	skynet.exit()
 end
 
