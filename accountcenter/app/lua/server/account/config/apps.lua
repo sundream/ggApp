@@ -13,7 +13,7 @@ return {
 			--["127.0.0.1"] = {"dev1"},
 		},
 		-- 账号白名单
-		acct_whitelist = {
+		account_whitelist = {
 			--["lgl"] = {"dev1"},
 		},
 		-- 平台白名单

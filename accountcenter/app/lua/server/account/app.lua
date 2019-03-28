@@ -22,8 +22,8 @@ function Server:init_router()
 	self:register("api.account.role.update")
 	self:register("api.account.role.get")
 	self:register("api.account.role.list")
-	self:register("api.account.role.rebindsrv")
-	self:register("api.account.role.rebindacct")
+	self:register("api.account.role.rebindserver")
+	self:register("api.account.role.rebindaccount")
 	self:register("api.account.server.add")
 	self:register("api.account.server.del")
 	self:register("api.account.server.update")
@@ -48,11 +48,11 @@ function Server:dispatch()
 	local method = ngx.req.get_method()
 	method = string.lower(method)
 	uri = string.rtrim(uri,"/")
-	local handle = self.router:handle(uri)
-	if not handle then
+	local handler = self.router:handler(uri)
+	if not handler then
 		util.response_json(ngx.HTTP_NOT_FOUND)
 	else
-		local func = handle[method]
+		local func = handler[method]
 		if func then
 			local isok,err = xpcall(func,debug.traceback)
 			if not isok then

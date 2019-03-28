@@ -1,5 +1,5 @@
 --- 基础全局函数
---@script base.util.function
+--@script gg.base.util.function
 --@author sundream
 --@release 2018/12/25 10:30:00
 
@@ -297,8 +297,8 @@ end
 --@param ... 执行方法的参数
 --@return 方法执行后的返回值
 --@usage
---	local len = call(_G,"string.len","hello") -- 5
-function call(mod,method,...)
+--	local len = exec(_G,"string.len","hello") -- 5
+function exec(mod,method,...)
 	if type(mod) == "string" then
 		mod = require (mod)
 	end
@@ -345,8 +345,8 @@ end
 --@return 执行这段代码后的返回值
 --@usage
 --	local code = "return string.len('hello')"
---	local len = exec(code)	-- 5
-function exec(code,env)
+--	local len = execcode(code)	-- 5
+function execcode(code,env)
 	local chunk
 	if env == nil then
 		chunk = load(code,"=(load)","bt")

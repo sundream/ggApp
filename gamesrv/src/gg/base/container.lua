@@ -1,5 +1,5 @@
 --- 容器基类,可被继承，也可直接实例化
---@script base.container
+--@script gg.base.container
 --@author sundream
 --@release 2018/12/25 10:30:00
 ccontainer = class("ccontainer")

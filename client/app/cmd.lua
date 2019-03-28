@@ -73,15 +73,15 @@ end
 -- debug登录特点:
 --	1. 创建角色时客户端可以控制角色ID
 --	2. 创建角色时不经过账号中心(即不会校验账号的存在性)
-function entergame(linkobj,acct,roleid,token)
+function entergame(linkobj,account,roleid,token)
 	local function fail(fmt,...)
-		fmt = string.format("[linktype=%s,account=%s,roleid=%s] %s",linkobj.linktype,linkobj.account or acct,roleid,fmt)
+		fmt = string.format("[linktype=%s,account=%s,roleid=%s] %s",linkobj.linktype,linkobj.account or account,roleid,fmt)
 		print(string.format(fmt,...))
 	end
 	local name = tostring(roleid)
 	local token = token or "debug"
 	local forward = "entergame"
-	linkobj:send_request("C2GS_CheckToken",{acct=acct,token=token,forward=forward,version="99.99.99"})
+	linkobj:send_request("C2GS_CheckToken",{account=account,token=token,forward=forward,version="99.99.99"})
 	linkobj:wait("GS2C_CheckTokenResult",function (linkobj,message)
 		local request = message.request
 		local status = request.status
@@ -105,7 +105,7 @@ function entergame(linkobj,acct,roleid,token)
 				new_linkobj = kcp_connect(ip,request.kcp_port)
 			end
 			linkobj.child = new_linkobj
-			entergame(new_linkobj,acct,roleid,token)
+			entergame(new_linkobj,account,roleid,token)
 		end)
 		linkobj:wait("GS2C_EnterGameResult",function (linkobj,message)
 			linkobj:ignore_one("GS2C_ReEnterGame")
@@ -117,7 +117,7 @@ function entergame(linkobj,acct,roleid,token)
 				return
 			end
 			if code == Answer.code.ROLE_NOEXIST then
-				linkobj:send_request("C2GS_CreateRole",{acct=acct,name=name,roleid=roleid})
+				linkobj:send_request("C2GS_CreateRole",{account=account,name=name,roleid=roleid})
 				linkobj:wait("GS2C_CreateRoleResult",function (linkobj,message)
 					local request = message.request
 					local status = request.status
@@ -128,8 +128,8 @@ function entergame(linkobj,acct,roleid,token)
 					end
 					local role = request.role
 					roleid = assert(role.roleid)
-					print(string.format("op=createrole,account=%s,roleid=%s",acct,roleid))
-					entergame(linkobj,acct,roleid,token)
+					print(string.format("op=createrole,account=%s,roleid=%s",account,roleid))
+					entergame(linkobj,account,roleid,token)
 				end)
 				return
 			end
@@ -155,11 +155,14 @@ end
 local function make_request(request,secret)
 	secret = secret or app.config.accountcenter.secret
 	request.sign = signature(request,secret)
+	return cjson.encode(request)
+	--[[
 	local list = {}
 	for k,v in pairs(request) do
 		table.insert(list,string.format("%s=%s",escape(k),escape(v)))
 	end
 	return table.concat(list,"&")
+	]]
 end
 
 local function unpack_response(response)
@@ -168,9 +171,9 @@ local function unpack_response(response)
 end
 
 -- 类似entergame,但是会先进行账密校验,账号不存在还会自动注册账号
-function quicklogin(linkobj,acct,roleid)
+function quicklogin(linkobj,account,roleid)
 	local function fail(fmt,...)
-		fmt = string.format("[linktype=%s,account=%s,roleid=%s] %s",linkobj.linktype,linkobj.account or acct,roleid,fmt)
+		fmt = string.format("[linktype=%s,account=%s,roleid=%s] %s",linkobj.linktype,linkobj.account or account,roleid,fmt)
 		print(string.format(fmt,...))
 	end
 	local passwd = "1"
@@ -180,7 +183,7 @@ function quicklogin(linkobj,acct,roleid)
 	local url = string.format("http://%s:%s/api/account/login",accountcenter.ip,accountcenter.port)
 	local req = make_request({
 		appid = appid,
-		acct = acct,
+		account = account,
 		passwd = passwd,
 	})
 	local response,status = http.request(url,req)
@@ -195,7 +198,7 @@ function quicklogin(linkobj,acct,roleid)
 		local url = string.format("http://%s:%s/api/account/register",accountcenter.ip,accountcenter.port)
 		local req = make_request({
 			appid = appid,
-			acct = acct,
+			account = account,
 			passwd = passwd,
 			sdk = "my",
 			platform = "my",
@@ -211,13 +214,13 @@ function quicklogin(linkobj,acct,roleid)
 			fail("register fail: code=%s,message=%s",code,response.message)
 			return
 		end
-		quicklogin(linkobj,acct,roleid)
+		quicklogin(linkobj,account,roleid)
 		return
 	elseif code ~= Answer.code.OK then
 		fail("login fail: code=%s,message=%s",code,response.message)
 		return
 	end
 	local token = response.data.token
-	acct = response.data.acct or acct
-	entergame(linkobj,acct,roleid,token)
+	account = response.data.account or account
+	entergame(linkobj,account,roleid,token)
 end

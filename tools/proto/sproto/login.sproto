@@ -5,7 +5,7 @@
 C2GS_CheckToken 1002 {
 	request {
 		token 0 : string	#账号中心登录后返回的认证token
-		acct 1 : string		#帐号
+		account 1 : string		#帐号
 		version 2 : string  #版本:如:1.0.0
 		forward 3 : string	#透传参数
 	}
@@ -14,7 +14,7 @@ C2GS_CheckToken 1002 {
 C2GS_CreateRole 1003 {
 	request {
 		roleid 0 : integer	#仅在调试登录时有用(正常创建角色不发,服务端控制角色ID生成)
-		acct 1 : string
+		account 1 : string
 		name 2 : string
 		job 3 : integer
 		sex 4 : integer		#0--男,1--女

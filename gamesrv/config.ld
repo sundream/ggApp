@@ -1,11 +1,11 @@
-project = "gamesrv"
+project = "gameserver"
 file = {
-	".",
+	"src",
 	exclude={
 		"src/gg/like_skynet",
-		"skynet",
+		"src/app/net/init.lua",
 	}
 }
-title = "gamesrv doc"
-description = "gamesrv doc"
+title = "gameserver doc"
+description = "gameserver doc"
 one = false

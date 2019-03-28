@@ -105,8 +105,14 @@ Table of Contents
 
 * 导入服务器列表
 	```
-	# 首次启动/新增节点时告知账号中心
+	# 首次启动/服务器配置有变动时执行
 	python tools/script/import_servers.py --appid=appid --config=tools/script/servers.dev.config
+	```
+
+* 生成服务器配置文件
+	```
+	# 服务器配置有变动时执行
+	python tools/script/generate_gamesrv_config.py --appid=appid --config=tools/script/servers.dev.config --accountcenter=127.0.0.1:8887 --out=~/ggApp/gamesrv/src/app/config
 	```
 
 * 运行gamesrv
@@ -121,7 +127,8 @@ Table of Contents
 		```
 		cd ~/ggApp/gamesrv_1/skynet
 		./skynet ../src/app/config/gamesrv_1.config
-		// 启动后看到start提示表示启动成功了。另外log/game/game$DATE.log会记录启服/关服日志
+		// 启动后成功后控制台会提示start,另外log/game/game$DATE.log会记录启服/关服日志
+		// 你也可以在控制台中执行任何lua代码
 		```
 
 	* shell管理
@@ -133,6 +140,16 @@ Table of Contents
 		sh restart.sh	# 重启
 		sh kill.sh		# 强制关闭
 		```
+
+	* 执行gm指令
+		```
+		cd ~/ggApp/gamesrv_1/shell
+		sh gm.sh #提示用法
+		sh gm.sh 0 help help
+		sh gm.sh 0 exec 'print(\"hello\")'
+		curl 'http://127.0.0.1:18888/call/8 "gm","0 exec print(\"hello\")"'
+		```
+
 
 [Back to TOC](#table-of-contents)
 

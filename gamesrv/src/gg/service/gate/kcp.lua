@@ -43,8 +43,6 @@
 --		skynet.send(watchdog,"lua","client","onmessage",linkid,message)
 ----4. 告知watchdog成为某个连接的辅助连接
 --		skynet.send(watchdog,"lua","client","saveof",master_linkid,slave_linkid)
---	5. 转发协议
---		skynet.send(tcp_gate,"lua","forward",proto,address)
 --
 --	watchdog -> kcp_gate
 ----1. 监听端口(底层用udp通信)
@@ -55,6 +53,8 @@
 --		skynet.send(kcp_gate,"lua","close",linkid)
 --	4. 热更协议
 --		skynet.send(kcp_gate,"lua","reload")
+----5. 转发协议到其他服务(默认是发到watchdog)
+--		skynet.send(kcp_gate,"lua","forward",proto,address)
 --
 --	备注: linkid: 连接ID,addr: 客户端地址,message: 消息
 

@@ -1,11 +1,15 @@
+local redis = require "skynet.db.redis"
 local rediscluster = require "skynet.db.redis.cluster"
 local mongo = require "skynet.db.mongo"
 
 dbmgr = dbmgr or {}
 
-function dbmgr.init(db_type)
+function dbmgr.init(conf)
+	conf = conf or {}
 	dbmgr.db = nil
-	dbmgr.db_type = db_type
+	dbmgr.db_type = assert(conf.db_type or skynet.getenv("db_type"))
+	dbmgr.db_config = assert(conf.db_config or skynet.getenv("db_config"))
+	dbmgr.db_is_cluster = conf.db_is_cluster or skynet.getenv("db_is_cluster")
 end
 
 function dbmgr.getdb()
@@ -15,31 +19,26 @@ function dbmgr.getdb()
 	end
 	local id = "db"
 	if dbmgr.db_type == "redis" then
-		local ok,db = sync.once.Do(id,function ()
-			local db = rediscluster.new({
-						{host="127.0.0.1",port=7001},
-						{host="127.0.0.1",port=7002},
-						{host="127.0.0.1",port=7003},
-					},{
-						max_connections = 256,
-						read_slave = true,
-						auth = nil,
-						db = 0,
-					})
-			dbmgr.db = db
+		if not dbmgr.db_is_cluster then
+			local ok,db = sync.once.Do(id,function ()
+				local db = redis.connect(dbmgr.db_config)
+				dbmgr.db = db
+				return db
+			end)
+			assert(ok,db)
 			return db
-		end)
-		assert(ok,db)
-		return db
+		else
+			local ok,db = sync.once.Do(id,function ()
+				local db = rediscluster.new(dbmgr.db_config.startup_nodes,dbmgr.db_config.opt)
+				dbmgr.db = db
+				return db
+			end)
+			assert(ok,db)
+			return db
+		end
 	else
 		local ok,db = sync.once.Do(id,function ()
-			local db = mongo.client({
-				rs = {
-					{host = "127.0.0.1",port = 29017,username=nil,password=nil,authmod=nil,authdb=nil},
-					{host = "127.0.0.1",port = 29018},
-					{host = "127.0.0.1",port = 29019},
-				}
-			})
+			local db = mongo.client(dbmgr.db_config)
 			dbmgr.db = db
 			return db
 		end)
@@ -53,7 +52,11 @@ function dbmgr.disconnect()
 		return
 	end
 	if dbmgr.db_type == "redis" then
-		dbmgr.db:close_all_connection()
+		if dbmgr.db_is_cluster then
+			dbmgr.db:close_all_connection()
+		else
+			dbmgr.db:disconnect()
+		end
 	else
 		dbmgr.db:disconnect()
 	end

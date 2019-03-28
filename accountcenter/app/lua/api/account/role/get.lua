@@ -4,13 +4,14 @@
 --@usage
 --api:		/api/account/role/get
 --protocol:	http/https
---method:
---	get		just support in debug mode
---	post
+--method:	post
 --params:
---	sign		[required] type=string help=签名
---	appid		[required] type=string help=appid
---	roleid		[required] type=string help=角色ID
+--	type=table encode=json
+--	{
+--		sign		[required] type=string help=签名
+--		appid		[required] type=string help=appid
+--		roleid		[required] type=number help=角色ID
+--	}
 --return:
 --	type=table encode=json
 --	{
@@ -30,22 +31,22 @@
 --		}
 --	}
 --example:
---	curl -v 'http://127.0.0.1:8887/api/account/role/get?sign=debug&appid=appid&roleid=1000000'
---	curl -v 'http://127.0.0.1:8887/api/account/role/get' -d 'sign=debug&appid=appid&roleid=1000000'
+--	curl -v 'http://127.0.0.1:8887/api/account/role/get' -d '{"sign":"debug","appid":"appid","roleid":1000000}'
 
 local Answer = require "answer"
 local util = require "server.account.util"
-local acctmgr = require "server.account.acctmgr"
+local accountmgr = require "server.account.accountmgr"
 local servermgr = require "server.account.servermgr"
+local cjson = require "cjson"
 
 
-local handle = {}
+local handler = {}
 
-function handle.exec(args)
+function handler.exec(args)
 	local request,err = table.check(args,{
 		sign = {type="string"},
 		appid = {type="string"},
-		roleid = {type="string"},
+		roleid = {type="number"},
 	})
 	if err then
 		local response = Answer.response(Answer.code.PARAM_ERR)
@@ -65,27 +66,18 @@ function handle.exec(args)
 		util.response_json(ngx.HTTP_OK,Answer.response(Answer.code.SIGN_ERR))
 		return
 	end
-	local role = acctmgr.getrole(appid,roleid)
+	local role = accountmgr.getrole(appid,roleid)
 	local response = Answer.response(Answer.code.OK)
 	response.data = {role=role}
 	util.response_json(ngx.HTTP_OK,response)
 	return
 end
 
-function handle.get()
-	local config = util.config()
-	if config.env ~= "dev" then
-		util.response_json(ngx.HTTP_FORBIDDEN)
-		return
-	end
-	local args = ngx.req.get_uri_args()
-	handle.exec(args)
-end
-
-function handle.post()
+function handler.post()
 	ngx.req.read_body()
-	local args = ngx.req.get_post_args()
-	handle.exec(args)
+	local args = ngx.req.get_body_data()
+	args = cjson.decode(args)
+	handler.exec(args)
 end
 
-return handle
+return handler

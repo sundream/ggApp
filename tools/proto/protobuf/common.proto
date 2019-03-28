@@ -3,6 +3,5 @@ syntax = "proto3";
 message MessageHeader {
 	int32 type = 1;	        // 消息ID
 	int32 session = 2;	// rpc会话ID,无需对方回复时可以发0,否则,保证唯一
-	int32 ud = 3;		// 用户自定义数据,如我们可以用来传包序号(要求唯一,严格递增)
-	bool request = 4;	// true--请求,false--回复
+	bool request = 3;	// true--请求,false--回复
 }

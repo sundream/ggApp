@@ -2,7 +2,7 @@ local skynet = require "skynet"
 local websocket_client = require "websocket.client"
 local crypt = require "skynet.crypt"
 local handshake = require "app.client.handshake"
-local config = require "app.config.user"
+local config = require "app.config.custom"
 require "app.codec.init"
 
 local websocket = {}
@@ -58,8 +58,6 @@ end
 function websocket:recv_message()
 	local data,typ,err = self.sock:recv_frame()
 	if not data then
-		if not string.find(err,"timeout") then
-		end
 		self:close()
 		return false
 	end

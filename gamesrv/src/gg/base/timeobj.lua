@@ -3,7 +3,7 @@
 --本周(周一为起点)数据: cthisweek
 --本周(周天为起点)数据: cthisweek2
 --本月数据: cthismonth
---@script base.timeobj
+--@script gg.base.timeobj
 --@author sundream
 --@release 2018/12/25 10:30:00
 

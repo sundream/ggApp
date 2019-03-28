@@ -1,8 +1,8 @@
 #!/bin/sh
 usage="Usage:
-	sh tools/stopallredis.sh -a 数据库密码(默认为redispwd)\n
-	e.g: sh tools/stopallredis.sh\n
-	e.g: sh tools/stopallredis.sh -a redispwd -i 127.0.0.1"
+	sh stopallredis.sh -a 数据库密码(默认为redispwd)\n
+	e.g: sh stopallredis.sh\n
+	e.g: sh stopallredis.sh -a redispwd -i 127.0.0.1"
 
 password="redispwd"
 host="127.0.0.1"

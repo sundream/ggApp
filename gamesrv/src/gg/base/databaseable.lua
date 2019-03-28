@@ -1,5 +1,5 @@
 ---键值对数据管理基类,可被继承,也可直接实例化
---@script base.databaseable
+--@script gg.base.databaseable
 --@author sundream
 --@release 2018/12/25 10:30:00
 cdatabaseable = class("cdatabaseable")

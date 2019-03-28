@@ -21,7 +21,7 @@
 用法: kickall
 
 功能: 执行一段lua脚本
-用法: runcmd lua脚本
+用法: exec lua脚本
 
 功能: 执行一个文件
 用法: dofile lua文件
@@ -34,5 +34,5 @@
 
 用法: loglevel [日志等级]
 举例: loglevel		<=> 查看日志等级
-举例: loglevel debug/info/warning/error/critical  <=> 设置对应日志等级
+举例: loglevel debug/info/warn/error/fatal  <=> 设置对应日志等级
 

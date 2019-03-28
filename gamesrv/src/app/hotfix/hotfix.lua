@@ -5,6 +5,10 @@ hotfix.ignore_modules = {
 }
 
 function hotfix.hotfix(modname)
+	local start = modname:sub(1,7)
+	if start == "../src/" then
+		modname = modname:sub(8)
+	end
 	local start = modname:sub(1,4)
 	if start == "src/" or start == "src." then
 		modname = modname:sub(5)
@@ -19,7 +23,7 @@ function hotfix.hotfix(modname)
 	-- 只允许游戏逻辑+协议更新
 	if is_proto then
 		local msg = string.format("op=hotfix,address=%s,module=%s",address,modname)
-		logger.log("info","hotfix",msg)
+		logger.logf("info","hotfix",msg)
 		print(msg)
 		client.reload_proto()
 		return true
@@ -33,12 +37,12 @@ function hotfix.hotfix(modname)
 	local ok,err = hotfix.reload(modname)
 	if not ok then
 		local msg = string.format("op=hotfix,address=%s,module=%s,fail=%s",address,modname,err)
-		logger.log("error","hotfix",msg)
+		logger.logf("error","hotfix",msg)
 		print(msg)
 		return false,msg
 	end
 	local msg = string.format("op=hotfix,address=%s,module=%s",address,modname)
-	logger.log("info","hotfix",msg)
+	logger.logf("info","hotfix",msg)
 	print(msg)
 	return true
 end

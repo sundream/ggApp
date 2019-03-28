@@ -5,7 +5,7 @@ gm_lock = gm_lock or queue()
 function gm.docmd(cmdline)
 	local split = string.split(cmdline,"%s")
 	local retlist = table.pack(gm_lock(gm._docmd,split))
-	logger.log("info","gm","op=docmd,cmdline='%s',return=%s",cmdline,retlist)
+	logger.logf("info","gm","op=docmd,cmdline='%s',return=%s",cmdline,retlist)
 	return table.unpack(retlist)
 end
 
@@ -49,8 +49,8 @@ function gm._docmd(cmds)
 		--[[
 		local online,now_serverid = playermgr.route(pid)
 		if online then
-			if now_serverid ~= gg.server:serverid() then
-				return rpc.call(now_serverid,"rpc","gm.docmd",cmdline)
+			if now_serverid ~= gg.server.id then
+				return rpc.call(now_serverid,"exec","gm.docmd",cmdline)
 			else
 				gm.master = playermgr.getplayer(pid)
 			end

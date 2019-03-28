@@ -4,14 +4,15 @@
 --@usage
 --api:		/api/account/role/list
 --protocol:	http/https
---method:
---	get		just support in debug mode
---	post
+--method:	post
 --params:
---	sign		[required] type=string help=签名
---	appid		[required] type=string help=appid
---	acct		[required] type=string help=账号
---	serverid	[optional] type=string help=服务器ID
+--	type=table encode=json
+--	{
+--		sign		[required] type=string help=签名
+--		appid		[required] type=string help=appid
+--		account		[required] type=string help=账号
+--		serverid	[optional] type=string help=服务器ID
+--	}
 --return:
 --	type=table encode=json
 --	{
@@ -22,24 +23,23 @@
 --		}
 --	}
 --example:
---	curl -v 'http://127.0.0.1:8887/api/account/role/list?sign=debug&appid=appid&acct=lgl'
---	curl -v 'http://127.0.0.1:8887/api/account/role/list?sign=debug&appid=appid&acct=lgl&serverid=gamesrv_1'
---	curl -v 'http://127.0.0.1:8887/api/account/role/list' -d 'sign=debug&appid=appid&acct=lgl'
---	curl -v 'http://127.0.0.1:8887/api/account/role/list' -d 'sign=debug&appid=appid&acct=lgl&serverid=gamesrv_1'
+--	curl -v 'http://127.0.0.1:8887/api/account/role/list' -d '{"sign":"debug","appid":"appid","account":"lgl"}'
+--	curl -v 'http://127.0.0.1:8887/api/account/role/list' -d '{"sign":"debug","appid":"appid","account":"lgl","serverid":"gamesrv_1"}'
 
 local Answer = require "answer"
 local util = require "server.account.util"
-local acctmgr = require "server.account.acctmgr"
+local accountmgr = require "server.account.accountmgr"
 local servermgr = require "server.account.servermgr"
+local cjson = require "cjson"
 
 
-local handle = {}
+local handler = {}
 
-function handle.exec(args)
+function handler.exec(args)
 	local request,err = table.check(args,{
 		sign = {type="string"},
 		appid = {type="string"},
-		acct = {type="string"},
+		account = {type="string"},
 		serverid = {type="string",optional=true},
 	})
 	if err then
@@ -49,7 +49,7 @@ function handle.exec(args)
 		return
 	end
 	local appid = request.appid
-	local acct = request.acct
+	local account = request.account
 	local serverid = request.serverid
 	local app = util.get_app(appid)
 	if not app then
@@ -61,11 +61,12 @@ function handle.exec(args)
 		util.response_json(ngx.HTTP_OK,Answer.response(Answer.code.SIGN_ERR))
 		return
 	end
-	if not acctmgr.getacct(acct) then
+	if not accountmgr.getaccount(account) then
 		util.response_json(ngx.HTTP_OK,Answer.response(Answer.code.ACCT_NOEXIST))
 		return
 	end
-	local rolelist = acctmgr.getrolelist(acct,appid)
+	local rolelist = accountmgr.getrolelist(account,appid)
+	print(table.dump(rolelist),account,appid)
 	if serverid then
 		rolelist = table.filter(rolelist,function (v)
 			return v.create_serverid == serverid
@@ -77,20 +78,11 @@ function handle.exec(args)
 	return
 end
 
-function handle.get()
-	local config = util.config()
-	if config.env ~= "dev" then
-		util.response_json(ngx.HTTP_FORBIDDEN)
-		return
-	end
-	local args = ngx.req.get_uri_args()
-	handle.exec(args)
-end
-
-function handle.post()
+function handler.post()
 	ngx.req.read_body()
-	local args = ngx.req.get_post_args()
-	handle.exec(args)
+	local args = ngx.req.get_body_data()
+	args = cjson.decode(args)
+	handler.exec(args)
 end
 
-return handle
+return handler

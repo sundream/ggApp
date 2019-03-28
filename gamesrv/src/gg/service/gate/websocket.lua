@@ -53,7 +53,7 @@
 --		skynet.send(websocket_gate,"lua","close",linkid)
 --	4. 热更协议
 --		skynet.send(websocket_gate,"lua","reload")
---	5. 转发协议
+----5. 转发协议到其他服务(默认是发到watchdog)
 --		skynet.send(tcp_gate,"lua","forward",proto,address)
 --
 --	备注: linkid: websocket连接ID,addr: 客户端地址,message: 消息

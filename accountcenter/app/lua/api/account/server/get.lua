@@ -4,15 +4,14 @@
 --@usage
 --api:		/api/account/server/get
 --protocol:	http/https
---	http
---	https
---method:
---	get		just support in debug mode
---	post
+--method:	post
 --params:
---	sign		[required] type=string help=签名
---	appid		[required] type=string help=appid
---	serverid	[required] type=string help=服务器ID
+--	type=table encode=json
+--	{
+--		sign		[required] type=string help=签名
+--		appid		[required] type=string help=appid
+--		serverid	[required] type=string help=服务器ID
+--	}
 --return:
 --	type=table encode=json
 --	{
@@ -23,18 +22,18 @@
 --		}
 --	}
 --example:
---	curl -v 'http://127.0.0.1:8887/api/account/server/get?sign=debug&appid=appid&serverid=gamesrv_1'
---	curl -v 'http://127.0.0.1:8887/api/account/server/get' -d 'sign=debug&appid=appid&serverid=gamesrv_1'
+--	curl -v 'http://127.0.0.1:8887/api/account/server/get' -d '{"sign":"debug","appid":"appid","serverid":"gamesrv_1"}'
 
 local Answer = require "answer"
 local util = require "server.account.util"
-local acctmgr = require "server.account.acctmgr"
+local accountmgr = require "server.account.accountmgr"
 local servermgr = require "server.account.servermgr"
+local cjson = require "cjson"
 
 
-local handle = {}
+local handler = {}
 
-function handle.exec(args)
+function handler.exec(args)
 	local request,err = table.check(args,{
 		sign = {type="string"},
 		appid = {type="string"},
@@ -47,7 +46,7 @@ function handle.exec(args)
 		return
 	end
 	local appid = request.appid
-	local acct = request.acct
+	local account = request.account
 	local serverid = request.serverid
 	local app = util.get_app(appid)
 	if not app then
@@ -66,20 +65,11 @@ function handle.exec(args)
 	return
 end
 
-function handle.get()
-	local config = util.config()
-	if config.env ~= "dev" then
-		util.response_json(ngx.HTTP_FORBIDDEN)
-		return
-	end
-	local args = ngx.req.get_uri_args()
-	handle.exec(args)
-end
-
-function handle.post()
+function handler.post()
 	ngx.req.read_body()
-	local args = ngx.req.get_post_args()
-	handle.exec(args)
+	local args = ngx.req.get_body_data()
+	args = cjson.decode(args)
+	handler.exec(args)
 end
 
-return handle
+return handler

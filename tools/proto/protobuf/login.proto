@@ -7,7 +7,7 @@ syntax = "proto3";
 // @id=102
 message C2GS_CheckToken {
 	string token = 1;		//账号中心登录后返回的认证token
-	string acct = 2;		//帐号
+	string account = 2;		//帐号
 	string version = 3;	//版本:如:1.0.0
 	string forward = 4;	//透传参数
 }
@@ -15,7 +15,7 @@ message C2GS_CheckToken {
 // @id=103
 message C2GS_CreateRole {
 	int64 roleid = 1;	//仅在调试登录时有用(正常创建角色不发,服务端控制角色ID生成)
-	string acct = 2;
+	string account = 2;
 	string name = 3;
 	int32 job = 4;
 	int32 sex = 5;		//0--男，1--女

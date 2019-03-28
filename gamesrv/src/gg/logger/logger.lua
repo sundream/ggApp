@@ -1,5 +1,5 @@
 --- 日志模块
---@script base.logger.logger
+--@script gg.logger.logger
 --@author sundream
 --@release 2018/12/25 10:30:00
 
@@ -22,7 +22,18 @@ end
 --	logger.debug("test","name=%s,age=%s","lgl",28)
 --	logger.debug("t1/t2/t3","hello,world")
 function logger.debug(filename,fmt,...)
-	logger.log("debug",filename,fmt,...)
+	logger.logf("debug",filename,fmt,...)
+end
+
+--- 写日志,日志级别:trace,trace日志会记录调用该函数的文件和行号
+--@param[type=string] filename 文件名
+--@param[type=string] fmt 格式化串
+--@param ... 用于格式化的参数
+--@usage
+--	logger.debug("test","name=%s,age=%s","lgl",28)
+--	logger.debug("t1/t2/t3","hello,world")
+function logger.trace(filename,fmt,...)
+	logger.logf("trace",filename,fmt,...)
 end
 
 --- 写日志,日志级别:info
@@ -33,7 +44,7 @@ end
 --	logger.info("test","name=%s,age=%s","lgl",28)
 --	logger.info("t1/t2/t3","hello,world")
 function logger.info(filename,fmt,...)
-	logger.log("info",filename,fmt,...)
+	logger.logf("info",filename,fmt,...)
 end
 
 --- 写日志,日志级别:warn
@@ -44,7 +55,7 @@ end
 --	logger.warn("test","name=%s,age=%s","lgl",28)
 --	logger.warn("t1/t2/t3","hello,world")
 function logger.warn(filename,fmt,...)
-	logger.log("warn",filename,fmt,...)
+	logger.logf("warn",filename,fmt,...)
 end
 
 --- 写日志,日志级别:error
@@ -55,7 +66,7 @@ end
 --	logger.error("test","name=%s,age=%s","lgl",28)
 --	logger.error("t1/t2/t3","hello,world")
 function logger.error(filename,fmt,...)
-	logger.log("error",filename,fmt,...)
+	logger.logf("error",filename,fmt,...)
 end
 
 --- 写日志,日志级别:fatal
@@ -66,24 +77,55 @@ end
 --	logger.fatal("test","name=%s,age=%s","lgl",28)
 --	logger.fatal("t1/t2/t3","hello,world")
 function logger.fatal(filename,fmt,...)
-	logger.log("fatal",filename,fmt,...)
+	logger.logf("fatal",filename,fmt,...)
+end
+
+--- 写日志,写入的消息会加上时间前缀,并且会自动换行
+--@param[type=string] loglevel 日志级别
+--@param[type=string] filename 文件名
+--@param ... 参数(传table会用json编码)
+--@usage
+--	logger.log("info","test","lgl",28)
+--	logger.log("debug","t1/t2/t3","hello,world")
+function logger.log(loglevel,filename,...)
+	local loglevel_name
+	loglevel,loglevel_name = logger.check_loglevel(loglevel)
+	if logger.loglevel > loglevel then
+		return
+	end
+	local args = table.pack(...)
+	local len = math.max(#args,args.n or 0)
+	for i = 1, len do
+		local typ = type(args[i])
+		if typ == "table" then
+			args[i] = cjson.encode(args[i])
+		elseif typ ~= "number" then
+			args[i] = tostring(args[i])
+		end
+	end
+	local msg = table.concat(args,logger.seperator)
+	logger.logf(loglevel,filename,msg)
 end
 
 --- 写日志,写入的消息会加上时间前缀,并且会自动换行
 --@param[type=string] loglevel 日志级别
 --@param[type=string] filename 文件名
 --@param[type=string] fmt 格式化串
---@param ... 用于格式化的参数
+--@param ... 用于格式化的参数(传table会用json编码)
 --@usage
---	logger.log("info","test","name=%s,age=%s","lgl",28)
---	logger.log("debug","t1/t2/t3","hello,world")
-function logger.log(loglevel,filename,fmt,...)
+--	logger.logf("info","test","name=%s,age=%s","lgl",28)
+--	logger.logf("debug","t1/t2/t3","hello,world")
+function logger.logf(loglevel,filename,fmt,...)
 	local loglevel_name
 	loglevel,loglevel_name = logger.check_loglevel(loglevel)
 	if logger.loglevel > loglevel then
 		return
 	end
 	assert(fmt)
+	if loglevel == logger.TRACE then
+		local info = debug.getinfo(2,"Sl")
+		fmt = info.short_src .. ":" .. info.currentline .. " " .. fmt
+	end
 	local msg
 	if select("#",...) == 0 then
 		msg = fmt
@@ -114,7 +156,9 @@ function logger.log(loglevel,filename,fmt,...)
 			local now = os.time()
 			local last_sendtime = logger.bugreport_mails[tag]
 			if not last_sendtime or (now - last_sendtime > 60) then
-				logger.sendmail(bugreport_mails,filename,msg)
+				local subject = string.format("name=%s,id=%s,index=%s,appid=%s,area=%s,zoneid=%s,filename=%s",
+					skynet.getenv("name"),skynet.getenv("id"),skynet.getenv("index"),skynet.getenv("appid"),skynet.getenv("area"),skynet.getenv("zoneid"),filename)
+				logger.sendmail(bugreport_mails,subject,msg)
 			end
 			logger.bugreport_mails[tag] = now
 		end
@@ -129,8 +173,11 @@ function logger.freopen(filename)
 end
 
 
-function logger.sendmail(to_list,subject,content)
-	skynet.send(logger.service,"lua","sendmail",to_list,subject,content)
+function logger.sendmail(to_list,subject,content,mail_smtp,mail_user,mail_password)
+	mail_smtp = mail_smtp or skynet.getenv("mail_smtp")
+	mail_user = mail_user or skynet.getenv("mail_user")
+	mail_password = mail_password or skynet.getenv("mail_password")
+	skynet.send(logger.service,"lua","sendmail",to_list,subject,content,mail_smtp,mail_user,mail_password)
 end
 
 --- 控制台输出消息,日志级别可以控制是否输出
@@ -163,12 +210,14 @@ function logger.check_loglevel(loglevel)
 end
 
 logger.DEBUG = 1
-logger.INFO = 2
-logger.WARN = 3
-logger.ERROR = 4
-logger.FATAL = 5
+logger.TRACE = 2
+logger.INFO = 3
+logger.WARN = 4
+logger.ERROR = 5
+logger.FATAL = 6
 logger.NAME_LEVEL = {
 	debug = logger.DEBUG,
+	trace = logger.TRACE,
 	info = logger.INFO,
 	warn = logger.WARN,
 	["error"] = logger.ERROR,
@@ -176,6 +225,7 @@ logger.NAME_LEVEL = {
 }
 logger.LEVEL_NAME = {
 	[logger.DEBUG] = "debug",
+	[logger.TRACE] = "trace",
 	[logger.INFO] = "info",
 	[logger.WARN] = "warn",
 	[logger.ERROR] = "error",
@@ -186,10 +236,11 @@ logger.LEVEL_NAME = {
 --- 启动日志服务
 --@usage
 --	有3个配置参数可以影响日志服务行为
---	1. loglevel: 控制日志级别(debug<info<warn<error<fatal)
+--	1. loglevel: 控制日志级别(debug<trace<info<warn<error<fatal)
 --	2. logpath: 日志文件目录
 --	3. log_dailyrotate: 是否每天自动分割日志
 function logger.init()
+	logger.seperator = skynet.getenv("log_seperator") or " "
 	logger.setloglevel(skynet.getenv("loglevel"))
 	if not logger.service then
 		logger.service = skynet.uniqueservice("gg/service/loggerd")

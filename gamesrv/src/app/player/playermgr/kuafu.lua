@@ -13,7 +13,7 @@
 --@param[type=int|table] linkobj 玩家ID|连线对象
 --@param[type=string] onlogin 经过pack_function序列化过的函数
 function playermgr.gosrv(linkobj,go_serverid,onlogin)
-	local from_serverid = cserver:serverid()
+	local from_serverid = gg.server.id
 	if from_serverid == go_serverid then
 		return
 	end
@@ -46,10 +46,10 @@ function playermgr.gosrv(linkobj,go_serverid,onlogin)
 		kuafu = true,
 		onlogin = onlogin,
 		from_serverid = from_serverid,
-		acct = account,
+		account = account,
 	}
-	logger.log("info","kuafu","op=gosrv,pid=%d,from_serverid=%s,go_serverid=%s,token=%s",pid,from_serverid,go_serverid,token)
-	rpc.call(go_serverid,"rpc","client.tokens:set",token,token_data,ttl)
+	logger.logf("info","kuafu","op=gosrv,pid=%d,from_serverid=%s,go_serverid=%s,token=%s",pid,from_serverid,go_serverid,token)
+	rpc.call(go_serverid,"exec","playermgr.tokens:set",token,token_data,ttl)
 	client.sendpackage(linkobj,"GS2C_ReEnterGame",{
 		token = token,
 		roleid = pid,
@@ -61,7 +61,7 @@ function playermgr.gosrv(linkobj,go_serverid,onlogin)
 	})
 	local reason = string.format("gosrv:%s",go_serverid)
 	if type(linkobj) == "number" then
-		playermgr.kick(linkobj,reason)
+		playermgr.kick(pid,reason)
 	else
 		client.dellinkobj(linkobj.linkid)
 	end
@@ -86,7 +86,7 @@ function playermgr._route(pid)
 		appid = appid,
 		roleid = pid,
 	})
-	local status,response = httpc.post(accountcenter,url,req)
+	local status,response = httpc.postx(accountcenter,url,req)
 	assert(status == 200)
 	response = httpc.unpack_response(response)
 	assert(response.code == httpc.answer.code.OK)

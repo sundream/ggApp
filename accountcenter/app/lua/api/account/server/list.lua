@@ -4,16 +4,17 @@
 --@usage
 --api:		/api/account/server/list
 --protocol:	http/https
---method:
---	get		just support in debug mode
---	post
+--method:	post
 --params:
---	sign		[required] type=string help=签名
---	appid		[required] type=string help=appid
---	version		[required] type=string help=版本
---	platform		[required] type=string help=平台
---	devicetype	[required] type=string help=设备类型
---	acct		[optional] type=string help=账号
+--	type=table encode=json
+--	{
+--		sign		[required] type=string help=签名
+--		appid		[required] type=string help=appid
+--		version		[required] type=string help=版本
+--		platform		[required] type=string help=平台
+--		devicetype	[required] type=string help=设备类型
+--		account		[optional] type=string help=账号
+--	}
 --return:
 --	type=table encode=json
 --	{
@@ -25,25 +26,25 @@
 --		}
 --	}
 --example:
---	curl -v 'http://127.0.0.1:8887/api/account/server/list?sign=debug&appid=appid&version=0.0.1&platform=my&devicetype=ios&acct=lgl'
---	curl -v 'http://127.0.0.1:8887/api/account/server/list' -d 'sign=debug&appid=appid&version=0.0.1&platform=my&devicetype=ios&acct=lgl'
+--	curl -v 'http://127.0.0.1:8887/api/account/server/list' -d '{"sign":"debug","appid":"appid","version":"0.0.1","platform":"my","devicetype":"ios","account":"lgl"}'
 
 local Answer = require "answer"
 local util = require "server.account.util"
-local acctmgr = require "server.account.acctmgr"
+local accountmgr = require "server.account.accountmgr"
 local servermgr = require "server.account.servermgr"
+local cjson = require "cjson"
 
 
-local handle = {}
+local handler = {}
 
-function handle.exec(args)
+function handler.exec(args)
 	local request,err = table.check(args,{
 		sign = {type="string"},
 		appid = {type="string"},
 		version = {type="string"},				-- 版本
 		platform = {type="string"},				-- 平台
 		devicetype = {type="string"},			-- 设备类型
-		acct = {type="string",optional=true},
+		account = {type="string",optional=true},
 	})
 	if err then
 		local response = Answer.response(Answer.code.PARAM_ERR)
@@ -55,7 +56,7 @@ function handle.exec(args)
 	local version = request.version
 	local platform = request.platform
 	local devicetype = request.devicetype
-	local acct = request.acct
+	local account = request.account
 	local ip = ngx.var.remote_addr
 	local app = util.get_app(appid)
 	if not app then
@@ -67,27 +68,18 @@ function handle.exec(args)
 		util.response_json(ngx.HTTP_OK,Answer.response(Answer.code.SIGN_ERR))
 		return
 	end
-	local serverlist,zonelist = util.filter_serverlist(appid,version,ip,acct,platform,devicetype)
+	local serverlist,zonelist = util.filter_serverlist(appid,version,ip,account,platform,devicetype)
 	local response = Answer.response(Answer.code.OK)
 	response.data = {serverlist=serverlist,zonelist=zonelist}
 	util.response_json(ngx.HTTP_OK,response)
 	return
 end
 
-function handle.get()
-	local config = util.config()
-	if config.env ~= "dev" then
-		util.response_json(ngx.HTTP_FORBIDDEN)
-		return
-	end
-	local args = ngx.req.get_uri_args()
-	handle.exec(args)
-end
-
-function handle.post()
+function handler.post()
 	ngx.req.read_body()
-	local args = ngx.req.get_post_args()
-	handle.exec(args)
+	local args = ngx.req.get_body_data()
+	args = cjson.decode(args)
+	handler.exec(args)
 end
 
-return handle
+return handler

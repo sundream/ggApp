@@ -52,21 +52,14 @@ end
 
 --- 洗牌(注意:会直接修改list)
 --@param[type=table] list 列表
---@param[type=int] num 前num个元素经过洗牌,默认为整个列表长度
 --@return[type=table] 洗牌后的列表
-function shuffle(list,num)
+function shuffle(list)
 	local len = #list
-	num = num or len
-	local cnt = 0
 	for i=1,len do
 		local idx = math.random(i,len)
 		local tmp = list[idx]
 		list[idx] = list[i]
 		list[i] = tmp
-		cnt = cnt + 1
-		if cnt >= num then
-			break
-		end
 	end
 	return list
 end
@@ -297,8 +290,8 @@ end
 --@param ... 执行方法的参数
 --@return 方法执行后的返回值
 --@usage
---	local len = call(_G,"string.len","hello") -- 5
-function call(mod,method,...)
+--	local len = exec(_G,"string.len","hello") -- 5
+function exec(mod,method,...)
 	if type(mod) == "string" then
 		mod = require (mod)
 	end
@@ -345,8 +338,8 @@ end
 --@return 执行这段代码后的返回值
 --@usage
 --	local code = "return string.len('hello')"
---	local len = exec(code)	-- 5
-function exec(code,env)
+--	local len = execcode(code)	-- 5
+function execcode(code,env)
 	local chunk
 	if env == nil then
 		chunk = load(code,"=(load)","bt")

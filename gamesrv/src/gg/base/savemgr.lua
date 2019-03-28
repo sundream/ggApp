@@ -1,5 +1,5 @@
 --- 存盘管理器
---@script base.savemgr
+--@script gg.base.savemgr
 --@author sundream
 --@release 2018/12/25 10:30:00
 --@usage
@@ -26,7 +26,7 @@ function savemgr.oncesave(obj)
 	if not savemgr.getobj(id) then
 		id = savemgr.addobj(obj)
 	end
-	logger.log("info","save","op=oncesave,id=%s,savename=%s",id,obj.savename)
+	logger.logf("info","save","op=oncesave,id=%s,savename=%s",id,obj.savename)
 end
 
 ---开启自动存盘,存盘间隔为obj.savetick,若无savetick属性则默认为300s
@@ -38,7 +38,7 @@ function savemgr.autosave(obj)
 	if not savemgr.getobj(id) then
 		id = savemgr.addobj(obj)
 	end
-	logger.log("info","save","op=autosave,id=%s,savename=%s",id,obj.savename)
+	logger.logf("info","save","op=autosave,id=%s,savename=%s",id,obj.savename)
 end
 
 ---使一个存盘对象立即存盘
@@ -53,7 +53,7 @@ function savemgr.nowsave(obj)
 	end
 	assert(obj.savetype == "oncesave" or obj.savetype == "autosave")
 	xpcall(function ()
-		logger.log("info","save","op=nowsave,id=%s,savename=%s,savetype=%s",id,obj.savename,obj.savetype)
+		logger.logf("info","save","op=nowsave,id=%s,savename=%s,savetype=%s",id,obj.savename,obj.savetype)
 		obj:savetodatabase()
 	end,onerror or debug.traceback)
 	if obj.savetype == "oncesave" then
@@ -76,7 +76,7 @@ end
 
 --- 使所有管理的存盘对象立即存盘
 function savemgr.saveall()
-	logger.log("info","save","op=saveall")
+	logger.logf("info","save","op=saveall")
 	for id,obj in pairs(savemgr.objs) do
 		savemgr.nowsave(obj)
 	end
@@ -97,7 +97,7 @@ end
 
 function savemgr.addobj(obj,id)
 	id = id or savemgr.genid()
-	logger.log("info","save","op=addobj,id=%s,savename=%s",id,obj.savename)
+	logger.logf("info","save","op=addobj,id=%s,savename=%s",id,obj.savename)
 	assert(savemgr.objs[id] == nil)
 	savemgr.objs[id] = obj
 	obj.saveid = id
@@ -108,7 +108,7 @@ end
 function savemgr.delobj(id)
 	local obj = savemgr.objs[id]
 	if obj then
-		logger.log("info","save","op=delobj,id=%s,savename=%s",id,obj.savename)
+		logger.logf("info","save","op=delobj,id=%s,savename=%s",id,obj.savename)
 		savemgr.objs[id] = nil
 	end
 end
@@ -118,7 +118,7 @@ function savemgr.starttimer(id)
 	if not obj then
 		return
 	end
-	logger.log("info","save","op=starttimer,id=%s,savename=%s",id,obj.savename)
+	logger.logf("info","save","op=starttimer,id=%s,savename=%s",id,obj.savename)
 	local key = string.format("timer.%s.%s",id,obj.savename)
 	local interval = obj.savetick or savemgr.savetick
 	timer.timeout(key,interval,function () savemgr.ontimer(id) end)

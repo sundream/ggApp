@@ -4,14 +4,15 @@
 --@usage
 --api:		/api/account/login
 --protocol:	http/https
---method:
---	get		just support in debug mode
---	post
+--method:	post
 --params:
---	sign		[required] type=string help=签名
---	appid		[required] type=string help=appid
---	acct		[required] type=string help=账号
---	passwd		[requried] type=string help=密码(md5值)
+--	type=table encode=json
+--	{
+--		sign		[required] type=string help=签名
+--		appid		[required] type=string help=appid
+--		account		[required] type=string help=账号
+--		passwd		[requried] type=string help=密码(md5值)
+--	}
 --return:
 --	type=table encode=json
 --	{
@@ -19,27 +20,27 @@
 --		message =	[required] type=number help=返回码说明
 --		data = {
 --			token =		[required] type=string help=认证TOKEN
---			acct =		[required] type=string help=内部账号
+--			account =		[required] type=string help=内部账号
 --		}
 --	}
 --example:
---	curl -v 'http://127.0.0.1:8887/api/account/login?sign=debug&appid=appid&acct=lgl&passwd=1'
---	curl -v 'http://127.0.0.1:8887/api/account/login' -d 'sign=debug&appid=appid&acct=lgl&passwd=1'
+--	curl -v 'http://127.0.0.1:8887/api/account/login' -d '{"sign":"debug","appid":"appid","account":"lgl","passwd":"1"}'
 
 local Answer = require "answer"
 local util = require "server.account.util"
-local acctmgr = require "server.account.acctmgr"
+local accountmgr = require "server.account.accountmgr"
 local servermgr = require "server.account.servermgr"
 local banlogin = require "server.account.banlogin"
+local cjson = require "cjson"
 
 
-local handle = {}
+local handler = {}
 
-function handle.exec(args)
+function handler.exec(args)
 	local request,err = table.check(args,{
 		sign = {type="string"},
 		appid = {type="string"},
-		acct = {type="string"},
+		account = {type="string"},
 		passwd = {type="string"},
 	})
 	if err then
@@ -49,7 +50,7 @@ function handle.exec(args)
 		return
 	end
 	local appid = request.appid
-	local acct = request.acct
+	local account = request.account
 	local passwd = request.passwd
 	local app = util.get_app(appid)
 	if not app then
@@ -61,7 +62,7 @@ function handle.exec(args)
 		util.response_json(ngx.HTTP_OK,Answer.response(Answer.code.SIGN_ERR))
 		return
 	end
-	local isok,detail = banlogin.isbanacct(appid,acct)
+	local isok,detail = banlogin.isbanaccount(appid,account)
 	if isok then
 		local response = Answer.response(Answer.code.BAN_ACCT)
 		response.data = detail
@@ -76,41 +77,32 @@ function handle.exec(args)
 		util.response_json(ngx.HTTP_OK,response)
 		return
 	end
-	local acctobj = acctmgr.getacct(acct)
-	if not acctobj then
+	local accountobj = accountmgr.getaccount(account)
+	if not accountobj then
 		util.response_json(ngx.HTTP_OK,Answer.response(Answer.code.ACCT_NOEXIST))
 		return
 	end
-	if passwd ~= acctobj.passwd then
+	if passwd ~= accountobj.passwd then
 		util.response_json(ngx.HTTP_OK,Answer.response(Answer.code.PASSWD_NOMATCH))
 		return
 	end
-	local token = acctmgr.gentoken()
+	local token = accountmgr.gentoken()
 	local data = {
 		token = token,
-		acct = acct,
+		account = account,
 	}
-	acctmgr.addtoken(token,data)
+	accountmgr.addtoken(token,data)
 	local response = Answer.response(Answer.code.OK)
 	response.data = data
 	util.response_json(ngx.HTTP_OK,response)
 	return
 end
 
-function handle.get()
-	local config = util.config()
-	if config.env ~= "dev" then
-		util.response_json(ngx.HTTP_FORBIDDEN)
-		return
-	end
-	local args = ngx.req.get_uri_args()
-	handle.exec(args)
-end
-
-function handle.post()
+function handler.post()
 	ngx.req.read_body()
-	local args = ngx.req.get_post_args()
-	handle.exec(args)
+	local args = ngx.req.get_body_data()
+	args = cjson.decode(args)
+	handler.exec(args)
 end
 
-return handle
+return handler

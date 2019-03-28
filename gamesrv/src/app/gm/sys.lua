@@ -32,7 +32,8 @@ end
 --- 用法: exec lua脚本
 function gm.exec(args)
 	local cmdline = table.concat(args," ")
-	return exec(cmdline)
+	local chunk = load(cmdline,"=(load)","bt")
+	return chunk()
 end
 
 gm.runcmd = gm.exec
@@ -57,11 +58,11 @@ end
 function gm.status(args)
 	local info = {
 		time = os.date("%Y-%m-%d %H:%M:%S",os.time()),
-		serverid = skynet.getenv("id"),
+		id = skynet.getenv("id"),
+		index = skynet.getenv("index"),
 		area = skynet.getenv("area"),
 		mqlen = skynet.mqlen(),
 		task = skynet.task(),
-		onlinenum = playermgr and playermgr.onlinenum,
 	}
 	local data = table.dump(info)
 	return gm.say(data)
@@ -89,15 +90,12 @@ gm.reload = gm.hotfix
 
 --- 用法: loglevel [日志等级]
 --- 举例: loglevel		<=> 查看日志等级
---- 举例: loglevel debug/info/warn/error/fatal  <=> 设置对应日志等级
+--- 举例: loglevel debug/trace/info/warn/error/fatal  <=> 设置对应日志等级
 function gm.loglevel(args)
 	local loglevel = args[1]
 	if not loglevel then
-		local ret = {}
 		local loglevel,name = logger.check_loglevel(logger.loglevel)
-		ret.game = name
-		local data = table.dump(ret)
-		return gm.say(data)
+		return gm.say(name)
 	else
 		local ok,loglevel,name = pcall(logger.check_loglevel,loglevel)
 		if not ok then

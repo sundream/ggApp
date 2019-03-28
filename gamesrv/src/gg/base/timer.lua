@@ -1,5 +1,5 @@
 --- 定时器模块
---@script base.timer
+--@script gg.base.timer
 --@author sundream
 --@release 2018/12/25 10:30:00
 timer = timer or {

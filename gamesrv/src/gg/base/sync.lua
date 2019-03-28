@@ -1,5 +1,5 @@
 --- 同步模块,如保证相同阻塞逻辑不重入
---@script base.sync
+--@script gg.base.sync
 --@author sundream
 --@release 2018/12/25 10:30:00
 sync = sync or {}

@@ -1,22 +1,21 @@
 
-
-common.proto"g
+o
+common.proto"W
 MessageHeader
 type (Rtype
-session (Rsession
-ud (Rud
-request (Rrequestbproto3
-î
+session (Rsession
+request (Rrequestbproto3
+†
 
-login.proto"o
+login.proto"u
 C2GS_CheckToken
-token (	Rtoken
-acct (	Racct
+token (	Rtoken
+account (	Raccount
 version (	Rversion
-forward (	Rforward"è
+forward (	Rforward"ï
 C2GS_CreateRole
-roleid (Rroleid
-acct (	Racct
+roleid (Rroleid
+account (	Raccount
 name (	Rname
 job (Rjob
 sex (Rsex

@@ -1,5 +1,5 @@
 ---热更模块
---@script base.hotfix
+--@script gg.base.hotfix
 --@author sundream
 --@release 2018/12/25 10:30:00
 hotfix = hotfix or {}
@@ -11,7 +11,6 @@ hotfix = hotfix or {}
 --热更完毕后会执行模块中定义(如果有)的__hotfix全局函数
 --只支持简单热更,无法更新模块级别定义的local变量
 function hotfix.reload(modname)
-	--skynet.cache.clear()
 	local chunk,err
 	local env = _ENV or _G
 	env.__hotfix = nil

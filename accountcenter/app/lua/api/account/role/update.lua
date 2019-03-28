@@ -4,24 +4,25 @@
 --@usage
 --api:		/api/account/role/update
 --protocol:	http/https
---method:
---	get		just support in debug mode
---	post
+--method:	post
 --params:
---	sign		[required] type=string help=签名
---	appid		[required] type=string help=appid
---	roleid		[required] type=string help=角色ID
---	role		[required] type=table encode=json help=更新的角色数据
---				role = {
---					name =		[required] type=string help=名字
---					job =		[required] type=number help=职业
---					sex =		[required] type=number help=性别:0--男,1--女
---					shapeid =	[required] type=number help=造型
---					lv =		[optional] type=number default=0 help=等级
---					gold =		[optional] type=number default=0 help=金币
---					now_serverid = [required] type=string help=当前所在服
---					online = [required] type=boolean help=是否在线
---				}
+--	type=table encode=json
+--	{
+--		sign		[required] type=string help=签名
+--		appid		[required] type=string help=appid
+--		roleid		[required] type=number help=角色ID
+--		role		[required] type=table encode=json help=更新的角色数据
+--					role = {
+--						name =		[required] type=string help=名字
+--						job =		[optional] type=number help=职业
+--						sex =		[optional] type=number help=性别:0--男,1--女
+--						shapeid =	[optional] type=number help=造型
+--						lv =		[optional] type=number default=0 help=等级
+--						gold =		[optional] type=number default=0 help=金币
+--						now_serverid = [required] type=string help=当前所在服
+--						online = [required] type=boolean help=是否在线
+--					}
+--	}
 --
 --return:
 --	type=table encode=json
@@ -30,22 +31,22 @@
 --		message =	[required] type=number help=返回码说明
 --	}
 --example:
---	curl -v 'http://127.0.0.1:8887/api/account/role/update?sign=debug&appid=appid&roleid=1000000&role=role_json_data'
---	curl -v 'http://127.0.0.1:8887/api/account/role/update' -d 'sign=debug&appid=appid&roleid=1000000&role=role_json_data'
+--	curl -v 'http://127.0.0.1:8887/api/account/role/update' -d '{"appid":"appid","roleid":1000000,"role":"{\"name\":\"name\"}","sign":"debug"}'
 
 local Answer = require "answer"
 local util = require "server.account.util"
-local acctmgr = require "server.account.acctmgr"
+local accountmgr = require "server.account.accountmgr"
 local servermgr = require "server.account.servermgr"
+local cjson = require "cjson"
 
 
-local handle = {}
+local handler = {}
 
-function handle.exec(args)
+function handler.exec(args)
 	local request,err = table.check(args,{
 		sign = {type="string"},
 		appid = {type="string"},
-		roleid = {type="string"},
+		roleid = {type="number"},
 		role = {type="json"},
 	})
 	if err then
@@ -69,26 +70,17 @@ function handle.exec(args)
 	end
 	role.roleid = roleid
 	--role.updatetime = os.time()
-	local code = acctmgr.updaterole(appid,role)
+	local code = accountmgr.updaterole(appid,role)
 	local response = Answer.response(code)
 	util.response_json(ngx.HTTP_OK,response)
 	return
 end
 
-function handle.get()
-	local config = util.config()
-	if config.env ~= "dev" then
-		util.response_json(ngx.HTTP_FORBIDDEN)
-		return
-	end
-	local args = ngx.req.get_uri_args()
-	handle.exec(args)
-end
-
-function handle.post()
+function handler.post()
 	ngx.req.read_body()
-	local args = ngx.req.get_post_args()
-	handle.exec(args)
+	local args = ngx.req.get_body_data()
+	args = cjson.decode(args)
+	handler.exec(args)
 end
 
-return handle
+return handler

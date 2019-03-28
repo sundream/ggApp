@@ -61,7 +61,6 @@ function app:init()
 	self.ticks = {}
 	self.codec = codec.new(config.proto)
 	self.config = config
-	self.message_id = 0
 	self.os_is_windows = os.getenv("HOME") == nil
 	if self.os_is_windows then
 		-- stdin cann't select in window,so use a socket to replace it!
@@ -187,13 +186,6 @@ function app:ctl(cmd,readable,sock)
 
 	end
 end
-
-function app:message_ud()
-	-- 消息自定义数据,如生成包序号
-	self.message_id = self.message_id + 1
-	return self.message_id
-end
-
 
 app:init()
 app:run()

@@ -2,7 +2,7 @@ require "app.util"
 local skynet = require "skynet"
 local agent = require "app.agent"
 local login = require "app.login"
-local config = require "app.config.user"
+local config = require "app.config.custom"
 local roleid = tonumber(...)
 assert(roleid)
 

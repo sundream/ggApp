@@ -1,5 +1,5 @@
 --- 时间函数
---@script base.time
+--@script gg.base.time
 --@author sundream
 --@release 2018/12/25 10:30:00
 

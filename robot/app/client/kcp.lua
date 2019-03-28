@@ -3,7 +3,7 @@ local socket = require "skynet.socket"
 local crypt = require "skynet.crypt"
 local lkcp = require "lkcp"
 local handshake = require "app.client.handshake"
-local config = require "app.config.user"
+local config = require "app.config.custom"
 require "app.codec.init"
 
 --	kcp会话管理,格式: 1byte协议类别+具体协议参数

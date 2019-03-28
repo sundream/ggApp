@@ -1,5 +1,5 @@
 --- string扩展
---@script base.util.string
+--@script gg.base.util.string
 --@author sundream
 --@release 2018/12/25 10:30:00
 

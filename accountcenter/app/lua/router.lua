@@ -4,20 +4,20 @@ Router.__index = Router
 function Router:new()
 	local self = {}
 	setmetatable(self,Router)
-	self.handles = {}
+	self.handlers = {}
 	return self
 end
 
-function Router:register(uri,handle)
-	self.handles[uri] = handle
+function Router:register(uri,handler)
+	self.handlers[uri] = handler
 end
 
 function Router:unregister(uri)
-	self.handles[uri] = nil
+	self.handlers[uri] = nil
 end
 
-function Router:handle(uri)
-	return self.handles[uri]
+function Router:handler(uri)
+	return self.handlers[uri]
 end
 
 return Router

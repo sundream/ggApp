@@ -4,27 +4,28 @@
 --@usage
 --api:		/api/account/role/add
 --protocol:	http/https
---method:
---	get		just support in debug mode
---	post
+--method:	post
 --params:
---	sign		[required] type=string help=签名
---	appid		[required] type=string help=appid
---	acct		[required] type=string help=账号
---	serverid	[required] type=string help=服务器ID
---	roleid		[optional] type=string help=角色ID,不指定则必选传genrolekey,minroleid,maxroleid
---	genrolekey	[optional] type=string help=为genroleid指定key
---	minroleid	[optional] type=number help=最小角色ID
---	maxroleid	[optional] type=number help=最大角色ID(不包括此值),区间为[minroleid,maxroleid)
---	role		[required] type=table encode=json help=角色数据
---				role = {
---					name =		[required] type=string help=名字
---					job =		[required] type=number help=职业
---					sex =		[required] type=number help=性别:0--男,1--女
---					shapeid =	[required] type=number help=造型
---					lv =		[optional] type=number default=0 help=等级
---					gold =		[optional] type=number default=0 help=金币
---				}
+--  type=table encode=json
+--  {
+--		sign		[required] type=string help=签名
+--		appid		[required] type=string help=appid
+--		account		[required] type=string help=账号
+--		serverid	[required] type=string help=服务器ID
+--		roleid		[optional] type=number help=角色ID,不指定则必选传genrolekey,minroleid,maxroleid
+--		genrolekey	[optional] type=string help=为genroleid指定key
+--		minroleid	[optional] type=number help=最小角色ID
+--		maxroleid	[optional] type=number help=最大角色ID(不包括此值),区间为[minroleid,maxroleid)
+--		role		[required] type=table encode=json help=角色数据
+--					role = {
+--						name =		[required] type=string help=名字
+--						job =		[optional] type=number help=职业
+--						sex =		[optional] type=number help=性别:0--男,1--女
+--						shapeid =	[optional] type=number help=造型
+--						lv =		[optional] type=number default=0 help=等级
+--						gold =		[optional] type=number default=0 help=金币
+--					}
+--  }
 --
 --return:
 --	type=table encode=json
@@ -37,35 +38,33 @@
 --		}
 --	}
 --example:
---	curl -v 'http://127.0.0.1:8887/api/account/role/add?sign=debug&appid=appid&acct=lgl&serverid=gamesrv_1&role=role_json_data&roleid=1000000'
---	curl -v 'http://127.0.0.1:8887/api/account/role/add?sign=debug&appid=appid&acct=lgl&serverid=gamesrv_1&role=role_json_data&genrolekey=appid&minroleid=1000000&maxroleid=2000000'
---	curl -v 'http://127.0.0.1:8887/api/account/role/add' -d 'sign=debug&appid=appid&acct=lgl&serverid=gamesrv_1&role=role_json_data&roleid=1000000'
---	curl -v 'http://127.0.0.1:8887/api/account/role/add' -d 'sign=debug&appid=appid&acct=lgl&serverid=gamesrv_1&role=role_json_data&genrolekey=appid&minroleid=1000000&maxroleid=2000000'
+--	curl -v 'http://127.0.0.1:8887/api/account/role/add' -d '{"appid":"appid","account":"lgl","serverid":"gamesrv_1","roleid":1000000,"role":"{\"name\":\"name\"}","sign":"debug"}'
+--	curl -v 'http://127.0.0.1:8887/api/account/role/add' -d '{"appid":"appid","account":"lgl","serverid":"gamesrv_1","genrolekey":"appid","minroleid":1000000,"maxroleid":1000000000,"role":"{\"name\":\"name\"}","sign":"debug"}'
 
 local Answer = require "answer"
 local util = require "server.account.util"
-local acctmgr = require "server.account.acctmgr"
+local accountmgr = require "server.account.accountmgr"
 local servermgr = require "server.account.servermgr"
+local cjson = require "cjson"
 
-local handle = {}
+local handler = {}
 
-function handle.exec(args)
+function handler.exec(args)
 	local request,err = table.check(args,{
 		sign = {type="string"},
 		appid = {type="string"},
-		acct = {type="string"},
+		account = {type="string"},
 		serverid = {type="string"},
 		role = {type="json"},
 	})
 	if err then
 		local response = Answer.response(Answer.code.PARAM_ERR)
 		response.message = string.format("%s|%s",response.message,err)
-		print(table.dump(response))
 		util.response_json(ngx.HTTP_OK,response)
 		return
 	end
 	local appid = request.appid
-	local acct = request.acct
+	local account = request.account
 	local serverid = request.serverid
 	local role = request.role
 	local app = util.get_app(appid)
@@ -90,34 +89,27 @@ function handle.exec(args)
 			util.response_json(ngx.HTTP_OK,response)
 			return
 		end
-		roleid = acctmgr.genroleid(appid,request.genrolekey,request.minroleid,request.maxroleid)
+		roleid = accountmgr.genroleid(appid,request.genrolekey,request.minroleid,request.maxroleid)
 		if not roleid then
 			util.response_json(ngx.HTTP_OK,Answer.response(Answer.code.ROLE_OVERLIMIT))
 			return
 		end
 	end
 	role.roleid = roleid
-	local code = acctmgr.addrole(acct,appid,serverid,role)
+	local code = accountmgr.addrole(account,appid,serverid,role)
 	local response = Answer.response(code)
-	response.data = {role=role}
+	if code == Answer.code.OK then
+		response.data = {role=role}
+	end
 	util.response_json(ngx.HTTP_OK,response)
 	return
 end
 
-function handle.get()
-	local config = util.config()
-	if config.env ~= "dev" then
-		util.response_json(ngx.HTTP_FORBIDDEN)
-		return
-	end
-	local args = ngx.req.get_uri_args()
-	handle.exec(args)
-end
-
-function handle.post()
+function handler.post()
 	ngx.req.read_body()
-	local args = ngx.req.get_post_args()
-	handle.exec(args)
+	local args = ngx.req.get_body_data()
+	args = cjson.decode(args)
+	handler.exec(args)
 end
 
-return handle
+return handler

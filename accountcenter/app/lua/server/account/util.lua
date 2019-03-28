@@ -85,9 +85,9 @@ function util.zonelist_by_ip(appid,ip)
 	return app.ip_whitelist[ip]
 end
 
-function util.zonelist_by_acct(appid,acct)
+function util.zonelist_by_account(appid,account)
 	local app = util.get_app(appid)
-	return app.acct_whitelist[acct]
+	return app.account_whitelist[account]
 end
 
 function util.zonelist_by_platform(appid,platform)
@@ -107,7 +107,7 @@ function util.serverlist_by_zonelist(all_serverlist,zonelist)
 	return serverlist
 end
 
-function util.filter_serverlist(appid,version,ip,acct,platform,devicetype)
+function util.filter_serverlist(appid,version,ip,account,platform,devicetype)
 	local servermgr = require "server.account.servermgr"
 	local config = util.config()
 	local env = config.env
@@ -129,8 +129,8 @@ function util.filter_serverlist(appid,version,ip,acct,platform,devicetype)
 		serverlist = util.serverlist_by_zonelist(all_serverlist,zonelist)
 		return serverlist,zonelist
 	end
-	if acct then
-		zonelist = util.zonelist_by_acct(appid,acct)
+	if account then
+		zonelist = util.zonelist_by_account(appid,account)
 		if zonelist then
 			serverlist = util.serverlist_by_zonelist(all_serverlist,zonelist)
 			return serverlist,zonelist

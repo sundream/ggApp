@@ -21,7 +21,7 @@ end
 
 -- 回复一个http请求
 function httpc.response(linkid,status,body,header)
-	logger.log("debug","http","op=send,linkid=%s,status=%s,body=%s,header=%s",
+	logger.logf("debug","http","op=send,linkid=%s,status=%s,body=%s,header=%s",
 		linkid,status,body,header)
 	local ok,err = httpd.write_response(sockethelper.writefunc(linkid),status,body,header)
 	if not ok then
@@ -40,6 +40,39 @@ function httpc.response_json(linkid,status,body,header)
 	httpc.response(linkid,status,body,header)
 end
 
+--- 扩展httpc.post,支持传入header,并根据header中指定content-type对form编码
+--@param[type=string] host 主机地址,如:127.0.0.1:8887
+--@param[type=string] url url
+--@param[type=string|table] form 请求的body数据,传table时默认根据header中指定的content-type编码
+--@param[type=table,opt] header 请求头,默认为application/json编码
+--@param[type=table,opt] recvheader 如果指定时会记录回复收到的header信息
+function httpc.postx(host,url,form,header,recvheader)
+	if not header then
+		header = {
+			["content-type"] = "application/json;charset=utf-8"
+		}
+	end
+	local content_type = header["content-type"]
+	local body
+	if string.find(content_type,"application/json") then
+		if type(form) == "table" then
+			body = cjson.encode(form)
+		else
+			body = form
+		end
+	else
+		assert(string.find(content_type,"application/x-www-form-urlencoded"))
+		if type(form) == "table" then
+			body = string.urlencode(form)
+		else
+			body = form
+		end
+	end
+	assert(type(body) == "string")
+	return httpc.request("POST", host, url, recvheader, header, body)
+
+end
+
 ---发送http/https请求
 --@param[type=string] url url
 --@param[type=table] get get请求参数
@@ -55,3 +88,5 @@ function httpc.req(url,get,post,no_reply)
 		return info.response_code,response
 	end
 end
+
+return httpc

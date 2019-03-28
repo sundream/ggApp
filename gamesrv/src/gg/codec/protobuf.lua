@@ -1,4 +1,9 @@
----一个完整的protobuf包格式如下
+---protobuf模块
+--@script gg.codec.protobuf
+--@author sundream
+--@release 2018/12/25 10:30:00
+--@usage
+--一个完整的protobuf包格式如下
 -- -----------------
 -- |len|header|body|
 -- -----------------

@@ -1,6 +1,6 @@
 local banlogin = {}
 
-function banlogin.isbanacct(appid,acct)
+function banlogin.isbanaccount(appid,account)
 	return false
 end
 

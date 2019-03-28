@@ -106,7 +106,7 @@ function _M.connect(self, uri, opts)
         path = "/"
     end
 
-    local ssl_verify, proto_header, origin_header, sock_opts = false
+    local ssl_verify, proto_header, origin_header = false
 
     if opts then
         local protos = opts.protocols
@@ -133,12 +133,7 @@ function _M.connect(self, uri, opts)
         end
     end
 
-    local ok, err
-    if sock_opts then
-        ok, err = socket_connect(sock,host, port, sock_opts)
-    else
-        ok, err = socket_connect(sock,host, port)
-    end
+    local ok, err = socket_connect(sock,host, port)
     if not ok then
         return nil, "failed to connect: " .. err
     end
@@ -188,7 +183,6 @@ function _M.connect(self, uri, opts)
     end
 
     -- FIXME: verify the response headers
-    
     local m = string.match(header, [[^%s*HTTP/1%.1%s+]])
     if not m then
         return nil, "bad HTTP response status line: " .. header

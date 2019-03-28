@@ -1,7 +1,7 @@
 ---功能: 给lua oop提供原语class,支持热更新，支持父类热更新直接
 --反应到子类,不支持删除成员函数，需要屏蔽时可以写成空函数,
 --参考: blog.codingnow.com/cloud/LuaOO
---@script base.class
+--@script gg.base.class
 --@usage cthisweek = class("cthisweek",ctoday)
 __class = __class or {}
 local function reload_class(name)
@@ -79,6 +79,7 @@ function class(name,...)
 	class_type.__super = ajust_super(super)
 	--set_super(class_type,super)
 	class_type.init = false		--constructor
+	class_type.ctor = false
 	class_type.new = function (...)
 		local tmp = ...
 		assert(tmp ~= class_type,string.format("must use %s.new(...) but not %s:new(...)",name,name))
@@ -88,6 +89,8 @@ function class(name,...)
 		do
 			if class_type.init then
 				class_type.init(self,...)
+			elseif class_type.ctor then
+				class_type.ctor(self,...)
 			end
 		end
 		return self

@@ -20,7 +20,7 @@ end
 
 net.login.version = skynet.getenv("version") or "0.0.1"
 
-function net.login.checkversion(version)
+function net.login.is_low_version(version)
 	local list1 = string.split(net.login.version,".")
 	local list2 = string.split(version,".")
 	local len = #list1
@@ -28,25 +28,25 @@ function net.login.checkversion(version)
 		local ver1 = tonumber(list1[i])
 		local ver2 = tonumber(list2[i])
 		if not ver2 then
-			return false
-		end
-		if ver2 < ver1 then
-			return false
-		elseif ver2 > ver1 then
 			return true
 		end
+		if ver2 < ver1 then
+			return true
+		elseif ver2 > ver1 then
+			return false
+		end
 	end
-	return true
+	return false
 end
 
--- CreateRole/EnterGame前token认证,检查是否通过账号登录
+-- CreateRole/EnterGame前token认证,检查是否通过登录认证
 function C2GS.CheckToken(linkobj,message)
 	local request = message.request
 	local token = assert(request.token)
-	local acct = assert(request.acct)
+	local account = assert(request.account)
 	local version = request.version
 	local forward = request.forward		-- 透传参数
-	if not net.login.checkversion(version) then
+	if net.login.is_low_version(version) then
 		local response = httpc.answer.response(httpc.answer.code.LOW_VERSION)
 		response.status = 200
 		response.forward = forward
@@ -54,19 +54,20 @@ function C2GS.CheckToken(linkobj,message)
 		return
 	end
 	local debuglogin = false
-	local token_data = client.tokens:get(token)
+	local token_data = playermgr.tokens:get(token)
 	if token == "debug" and net.login.is_safe_ip(linkobj.ip) then
 		debuglogin = true
 	elseif token_data ~= nil then
-		if token_data.acct and token_data.acct ~= acct then
+		if token_data.account and token_data.account ~= account then
 			local response = httpc.answer.response(httpc.answer.code.TOKEN_UNAUTH)
 			response.status = 200
 			response.forward = forward
 			client.sendpackage(linkobj,"GS2C_CheckTokenResult",response)
 			return
 		end
-		-- 跨服传递的数据
 		if token_data.kuafu then
+			-- 跨服透传的数据只生效一次
+			token_data.kuafu = nil
 			linkobj.kuafu_forward = token_data
 		end
 	else
@@ -76,10 +77,10 @@ function C2GS.CheckToken(linkobj,message)
 		local url = "/api/account/checktoken"
 		local req = httpc.make_request({
 			appid = appid,
-			acct = acct,
+			account = account,
 			token = token,
 		})
-		local status,response = httpc.post(accountcenter,url,req)
+		local status,response = httpc.postx(accountcenter,url,req)
 		if status ~= 200 then
 			client.sendpackage(linkobj,"GS2C_CheckTokenResult",{status = status,forward=forward})
 			return
@@ -94,7 +95,7 @@ function C2GS.CheckToken(linkobj,message)
 			})
 			return
 		end
-		client.tokens:set(token,{acct=acct},302)
+		playermgr.tokens:set(token,{account=account},302)
 	end
 	linkobj.passlogin = true
 	linkobj.version = version
@@ -111,7 +112,7 @@ end
 
 function C2GS.CreateRole(linkobj,message)
 	local request = message.request
-	local acct = assert(request.acct)
+	local account = assert(request.account)
 	local name = assert(request.name)
 	if not linkobj.passlogin then
 		local response = httpc.answer.response(httpc.answer.code.PLEASE_LOGIN_FIRST)
@@ -127,11 +128,8 @@ function C2GS.CreateRole(linkobj,message)
 		return
 	end
 	local role = {
-		acct = acct,
+		account = account,
 		name = name,
-		job = 0,
-		sex = 0,
-		shapeid = 0,
 	}
 	local roleid
 	if linkobj.debuglogin and request.roleid then
@@ -144,14 +142,14 @@ function C2GS.CreateRole(linkobj,message)
 		local url = "/api/account/role/add"
 		local req = httpc.make_request({
 			appid = appid,
-			acct = acct,
+			account = account,
 			serverid = serverid,
 			role = cjson.encode(role),
 			genrolekey = appid, -- 全服ID统一分配
 			minroleid = 1000000,
 			maxroleid = 1000000000,
 		})
-		local status,response = httpc.post(accountcenter,url,req)
+		local status,response = httpc.postx(accountcenter,url,req)
 		if status ~= 200 then
 			client.sendpackage(linkobj,"GS2C_CreateRoleResult",{status = status,})
 			return
@@ -167,10 +165,9 @@ function C2GS.CreateRole(linkobj,message)
 		end
 		local roledata = assert(response.data.role)
 		roleid = assert(tonumber(roledata.roleid))
-		acct = roledata.acct
 	end
 	role.roleid = roleid
-	role.acct = acct
+	role.account = account
 	playermgr.createplayer(role.roleid,role)
 	local status = 200
 	local code = httpc.answer.code.OK
@@ -212,7 +209,7 @@ function net.login._entergame(linkobj,message)
 		local online,now_serverid = playermgr.route(pid)
 		if online then
 			--assert(now_serverid ~= cserver:serverid())
-			if now_serverid ~= cserver:serverid() then
+			if now_serverid ~= gg.server.id then
 				-- 强制关服可能导致online状态不对
 				linkobj.roleid = pid
 				playermgr.gosrv(linkobj,now_serverid)

@@ -54,12 +54,14 @@ function logger.write(filename,msg)
 	fd:flush()
 end
 
-function logger.sendmail(to_list,subject,content)
+function logger.sendmail(to_list,subject,content,mail_smtp,mail_user,mail_password)
 	local function escape(str)
 		local str = string.gsub(str,"\"","\\\"")
 		return str
 	end
-	local sh = string.format("cd ../shell && python sendmail.py %s \"%s\" \"%s\"",to_list,escape(subject),escape(content))
+
+	--local sh = string.format("cd ../shell && python sendmail.py %s \"%s\" \"%s\" %s %s %s",to_list,escape(subject),escape(content),mail_smtp,mail_user,mail_password)
+	local sh = string.format("cd ../shell && sh sendmail.sh %s \"%s\" \"%s\" %s %s %s",to_list,escape(subject),escape(content),mail_smtp,mail_user,mail_password)
 	--os.execute会等待命令执行完毕才返回!
 	--os.execute(sh)
 	io.popen(sh)

@@ -30,8 +30,16 @@ skynet.start(function()
 					agent.ip = header["x-real-ip"]
 				end
 				local uri, query = urllib.parse(url)
+				-- uri may include http://host:port ?
+				if uri:sub(1,1) ~= "/" then
+					uri = string.match(uri,"http[s]?://.-(/.+)")
+				end
 				-- 使用call保证http回复发送出去后才关闭连接!
-				skynet.call(watchdog,"lua","service","http",agent,uri,query,header,body)
+				local ok = pcall(skynet.call,watchdog,"lua","service","http",agent,uri,header,query,body)
+				if not ok then
+					-- server internal error
+					response(linkid,500)
+				end
 			end
 		else
 			if url == sockethelper.socket_error then

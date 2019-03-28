@@ -1,5 +1,4 @@
 .package {
 	type 0 : integer     # 消息ID(不发该值,表示是一个回复包,必须发session以表示对哪个请求的回复)
 	session 1 : integer  # rpc会话ID,无需对方回复时可以发0,否则,保证唯一
-	ud 2 : integer       # 用户自定义数据,如我们可以用来传包序号(要求唯一,严格递增)
 }

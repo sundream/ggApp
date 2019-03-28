@@ -7,8 +7,8 @@ function playermgr.init()
 	playermgr.onlinenum = 0
 	playermgr.onlinelimit = tonumber(skynet.getenv("onlinelimit")) or 10240
 	playermgr.players = ccontainer.new()
-
-	playermgr.starttimer_log_status()
+	-- token
+	playermgr.tokens = cthistemp.new()
 end
 
 function playermgr.getplayer(pid)
@@ -40,18 +40,14 @@ end
 function playermgr.getonlineplayer(pid)
 	local player = playermgr.getplayer(pid)
 	if player then
-		if playermgr.isonline(player) then
+		if player.linkobj then
 			return player
 		end
 	end
 end
 
-function playermgr.isonline(player)
-	return player.linkobj and true or false
-end
-
 function playermgr.bind_linkobj(player,linkobj)
-	--logger.log("info","playermgr","op=bind_linkobj,pid=%s,linkid=%s,linktype=%s,ip=%s,port=%s",
+	--logger.logf("info","playermgr","op=bind_linkobj,pid=%s,linkid=%s,linktype=%s,ip=%s,port=%s",
 	--	player.pid,linkobj.linkid,linkobj.linktype,linkobj.ip,linkobj.port)
 	linkobj:bind(player.pid)
 	player.linkobj = linkobj
@@ -60,7 +56,7 @@ end
 
 function playermgr.unbind_linkobj(player)
 	local linkobj = assert(player.linkobj)
-	--logger.log("info","playermgr","op=unbind_linkobj,pid=%s,linkid=%s,linktype=%s,ip=%s,port=%s",
+	--logger.logf("info","playermgr","op=unbind_linkobj,pid=%s,linkid=%s,linktype=%s,ip=%s,port=%s",
 	--	player.pid,linkobj.linkid,linkobj.linktype,linkobj.ip,linkobj.port)
 	player.linkobj:unbind()
 	player.linkobj = nil
@@ -76,10 +72,14 @@ function playermgr.kick(pid,reason)
 	if not player then
 		return
 	end
-	player.bforce_exitgame = true
-	player:exitgame(reason)
-	player.bforce_exitgame = nil
-	return player
+	if player:isdisconnect() then
+
+		-- 托管玩家掉线后还会维持玩家对象
+		-- 踢出托管对象让其退出游戏即可
+		player:exitgame(reason)
+	else
+		player:disconnect(reason)
+	end
 end
 
 function playermgr.kickall(reason)
@@ -90,7 +90,7 @@ function playermgr.kickall(reason)
 end
 
 function playermgr.createplayer(pid,conf)
-	--logger.log("info","playermgr","op=createplayer,pid=%d,player=%s",pid,conf)
+	--logger.logf("info","playermgr","op=createplayer,pid=%d,player=%s",pid,conf)
 	local player = cplayer.new(pid)
 	player:create(conf)
 	--player:savetodatabase()
@@ -157,37 +157,11 @@ end
 function playermgr.tuoguannum()
 	local tuoguannum = 0
 	for pid,player in pairs(playermgr.players.objs) do
-		if not player:isonline() then
+		if not player.linkobj then
 			tuoguannum = tuoguannum + 1
 		end
 	end
 	return tuoguannum
-end
-
-function playermgr.starttimer_log_status()
-	local interval = 10
-	timer.timeout("playermgr.starttimer_log_status",interval,playermgr.starttimer_log_status)
-	playermgr._timercnt = (playermgr._timercnt or 0) + 1
-	-- 计算每5分钟在线人数峰值，谷值
-	if playermgr._timercnt % math.ceil(300,interval) == 0 then
-		playermgr.min_onlinenum = nil
-		playermgr.max_onlinenum = nil
-	end
-	playermgr.min_onlinenum = playermgr.min_onlinenum or playermgr.onlinenum
-	playermgr.max_onlinenum = playermgr.max_onlinenum or playermgr.onlinenum
-	if not playermgr.min_onlinenum or playermgr.onlinenum < playermgr.min_onlinenum then
-		playermgr.min_onlinenum = playermgr.onlinenum
-	end
-	if not playermgr.max_onlinenum or playermgr.onlinenum > playermgr.max_onlinenum then
-		playermgr.max_onlinenum = playermgr.onlinenum
-	end
-	local tuoguannum = playermgr.tuoguannum()
-	local linknum = client.linkobjs and client.linkobjs.len or 0
-	local mqlen = skynet.mqlen()
-	local task = skynet.task()
-	local serverid = skynet.getenv("id")
-	logger.log("info","status","serverid=%s,onlinenum=%s,tuoguannum=%s,min_onlinenum=%s,max_onlinenum=%s,linknum=%s,onlinelimit=%s,mqlen=%s,task=%s",
-		serverid,playermgr.onlinenum,tuoguannum,playermgr.min_onlinenum,playermgr.max_onlinenum,linknum,playermgr.onlinelimit,mqlen,task)
 end
 
 return playermgr

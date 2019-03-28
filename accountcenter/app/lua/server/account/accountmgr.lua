@@ -1,14 +1,14 @@
 ---账号角色管理器
 --@usage
 --redis数据库结构
---角色表: appid:role:角色ID => {roleid=xxx,appid=xxx,acct=xxx,create_serverid=xxx,...}
---账号表: acct:账号 => {acct=xxx,passwd=xxx,sdk=xxx,platform=xxx,...}
+--角色表: appid:role:角色ID => {roleid=xxx,appid=xxx,account=xxx,create_serverid=xxx,...}
+--账号表: account:账号 => {account=xxx,passwd=xxx,sdk=xxx,platform=xxx,...}
 --账号已有角色表: appid:roles:账号 => {角色ID列表}
 --
 --mongo数据库结构
---角色表: role =>  {roleid=xxx,appid=xxx,acct=xxx,create_serverid=xxx,...}
---账号表: account => {acct=xxx,passwd=xxx,sdk=xxx,platform=xxx,...}
---账号已有角色表: account_roles => {acct=xxx,appid=xxx,roles={角色ID列表}}
+--角色表: role =>  {roleid=xxx,appid=xxx,account=xxx,create_serverid=xxx,...}
+--账号表: account => {account=xxx,passwd=xxx,sdk=xxx,platform=xxx,...}
+--账号已有角色表: account_roles => {account=xxx,appid=xxx,roles={角色ID列表}}
 
 
 local resty_string = require "resty.string"
@@ -21,29 +21,29 @@ local util = require "server.account.util"
 local servermgr = require "server.account.servermgr"
 local db_type = util.config().db.type
 
-local acctmgr = {}
+local accountmgr = {}
 
-function acctmgr.saveacct(acctobj)
+function accountmgr.saveaccount(accountobj)
 	if db_type == "redis" then
-		local acct = assert(acctobj.acct)
+		local account = assert(accountobj.account)
 		local db = redis:new()
-		local key = string.format("acct:%s",acct)
-		db:set(key,cjson.encode(acctobj))
+		local key = string.format("account:%s",account)
+		db:set(key,cjson.encode(accountobj))
 		redis:close(db)
 	else
-		local acct = assert(acctobj.acct)
+		local account = assert(accountobj.account)
 		local conn = mongo:new()
 		local db = conn:new_db_handle("game")
 		local collection = db:get_col("account")
-		collection:update({acct=acct},acctobj,1,0)
+		collection:update({account=account},accountobj,1,0)
 		mongo:close(conn)
 	end
 end
 
-function acctmgr.getacct(acct)
+function accountmgr.getaccount(account)
 	if db_type == "redis" then
 		local db = redis:new()
-		local key = string.format("acct:%s",acct)
+		local key = string.format("account:%s",account)
 		local retval = db:get(key)
 		redis:close(db)
 		if retval == nil or retval == ngx.null then
@@ -55,7 +55,7 @@ function acctmgr.getacct(acct)
 		local conn = mongo:new()
 		local db = conn:new_db_handle("game")
 		local collection = db:get_col("account")
-		local doc = collection:find_one({acct=acct})
+		local doc = collection:find_one({account=account})
 		mongo:close(conn)
 		if doc == nil or doc == ngx.null then
 			return nil
@@ -66,33 +66,33 @@ function acctmgr.getacct(acct)
 end
 
 --/*
--- acctobj: {acct=账号,passwd=密码,sdk=sdk,platform=平台,...}
+-- accountobj: {account=账号,passwd=密码,sdk=sdk,platform=平台,...}
 --*/
-function acctmgr.addacct(acctobj)
-	local acct = assert(acctobj.acct)
-	local has_acctobj = acctmgr.getacct(acct)
-	if has_acctobj then
+function accountmgr.addaccount(accountobj)
+	local account = assert(accountobj.account)
+	local has_accountobj = accountmgr.getaccount(account)
+	if has_accountobj then
 		return Answer.code.ACCT_EXIST
 	end
-	acctobj.createtime = os.time()
-	ngx.log(ngx.INFO,string.format("op=addacct,acctobj=%s",cjson.encode(acctobj)))
-	acctmgr.saveacct(acctobj)
+	accountobj.createtime = os.time()
+	ngx.log(ngx.INFO,string.format("op=addaccount,accountobj=%s",cjson.encode(accountobj)))
+	accountmgr.saveaccount(accountobj)
 	return Answer.code.OK
 end
 
-function acctmgr.delacct(acct)
-	local acctobj = acctmgr.getacct(acct)
-	if acctobj then
-		ngx.log(ngx.INFO,string.format("op=delacct,acct=%s",acct))
+function accountmgr.delaccount(account)
+	local accountobj = accountmgr.getaccount(account)
+	if accountobj then
+		ngx.log(ngx.INFO,string.format("op=delaccount,account=%s",account))
 		if db_type == "redis" then
 			local db = redis:new()
-			db:del(acct)
+			db:del(account)
 			redis:close(db)
 		else
 			local conn = mongo:new()
 			local db = conn:new_db_handle("game")
 			local collection = db:get_col("account")
-			collection:delete({acct=acct},1)
+			collection:delete({account=account},1)
 			mongo:close(conn)
 		end
 		return Answer.code.OK
@@ -101,10 +101,10 @@ function acctmgr.delacct(acct)
 end
 
 -- 返回角色ID列表
-function acctmgr.getroles(acct,appid)
+function accountmgr.getroles(account,appid)
 	if db_type == "redis" then
 		local db = redis:new()
-		local key = string.format("%s:roles:%s",appid,acct)
+		local key = string.format("%s:roles:%s",appid,account)
 		local retval = db:get(key)
 		redis:close(db)
 		if retval == nil or retval == ngx.null then
@@ -116,7 +116,7 @@ function acctmgr.getroles(acct,appid)
 		local conn = mongo:new()
 		local db = conn:new_db_handle("game")
 		local collection = db:get_col("account_roles")
-		local doc = collection:find_one({acct=acct,appid=appid})
+		local doc = collection:find_one({account=account,appid=appid})
 		mongo:close(conn)
 		if doc == nil then
 			return {}
@@ -126,10 +126,10 @@ function acctmgr.getroles(acct,appid)
 	end
 end
 
-function acctmgr.getrolelist(acct,appid)
+function accountmgr.getrolelist(account,appid)
 	if db_type == "redis" then
 		local db = redis:new()
-		local roles = acctmgr.getroles(acct,appid)
+		local roles = accountmgr.getroles(account,appid)
 		local keys = {}
 		for i,roleid in ipairs(roles) do
 			table.insert(keys,string.format("%s:role:%s",appid,roleid))
@@ -147,7 +147,7 @@ function acctmgr.getrolelist(acct,appid)
 		local conn = mongo:new()
 		local db = conn:new_db_handle("game")
 		local collection = db:get_col("role")
-		local cursor = collection:find({acct=acct,appid=appid})
+		local cursor = collection:find({account=account,appid=appid})
 		local docs = {}
 		for i,doc in cursor:pairs() do
 			table.insert(docs,mongo:pack_doc(doc))
@@ -158,38 +158,38 @@ function acctmgr.getrolelist(acct,appid)
 end
 
 -- roles: 角色ID列表
-function acctmgr.saveroles(acct,appid,roles)
+function accountmgr.saveroles(account,appid,roles)
 	assert(roles ~= nil)
 	if db_type == "redis" then
 		local db = redis:new()
-		local key = string.format("%s:roles:%s",appid,acct)
+		local key = string.format("%s:roles:%s",appid,account)
 		db:set(key,cjson.encode(roles))
 		redis:close(db)
 	else
 		local conn = mongo:new()
 		local db = conn:new_db_handle("game")
 		local collection = db:get_col("account_roles")
-		local doc = {acct=acct,appid=appid,roles=roles}
-		collection:update({acct=acct,appid=appid,},doc,1,0)
+		local doc = {account=account,appid=appid,roles=roles}
+		collection:update({account=account,appid=appid,},doc,1,0)
 		mongo:close(conn)
 	end
 end
 
-function acctmgr.checkrole(role)
+function accountmgr.checkrole(role)
 	local role,err = table.check(role,{
-		roleid = {type="string"},
+		roleid = {type="number"},
 		name = {type="string"},
-		job = {type="number"},
-		sex = {type="number"},
-		shapeid = {type="number"},
+		job = {type="number",optional=true},
+		sex = {type="number",optional=true},
+		shapeid = {type="number",optional=true,},
 		lv = {type="number",optional=true,default=0,},
 		gold = {type="number",optional=true,default=0,},
 	})
 	return role,err
 end
 
-function acctmgr.addrole(acct,appid,serverid,role)
-	local role,err = acctmgr.checkrole(role)
+function accountmgr.addrole(account,appid,serverid,role)
+	local role,err = accountmgr.checkrole(role)
 	if err then
 		return Answer.code.ROLE_FMT_ERR
 	end
@@ -198,32 +198,31 @@ function acctmgr.addrole(acct,appid,serverid,role)
 	if not util.get_app(appid) then
 		return Answer.code.APPID_NOEXIST
 	end
-	if not acctmgr.getacct(acct) then
+	if not accountmgr.getaccount(account) then
 		return Answer.code.ACCT_NOEXIST
 	end
 	if not servermgr.getserver(appid,serverid) then
 		return Answer.code.SERVER_NOEXIST
 	end
-	local found = acctmgr.getrole(appid,roleid)
+	local found = accountmgr.getrole(appid,roleid)
 	if found then
 		return Answer.code.ROLE_EXIST
 	end
-	local rolelist = acctmgr.getroles(acct,appid)
+	local rolelist = accountmgr.getroles(account,appid)
 	local found = table.find(rolelist,roleid)
 	if found then
 		return Answer.code.ROLE_EXIST
 	end
 	role.appid = appid
-	role.acct = acct
+	role.account = account
 	role.create_serverid = serverid
 	role.createtime = role.createtime or os.time()
-	ngx.log(ngx.INFO,string.format("op=addrole,acct=%s,appid=%s,role=%s",acct,appid,cjson.encode(role)))
+	ngx.log(ngx.INFO,string.format("op=addrole,account=%s,appid=%s,role=%s",account,appid,cjson.encode(role)))
 	if db_type == "redis" then
 		local db = redis:new()
 		local key = string.format("%s:role:%s",appid,roleid)
 		db:set(key,cjson.encode(role))
 		redis:close(db)
-		return Answer.code.OK
 	else
 		local conn = mongo:new()
 		local db = conn:new_db_handle("game")
@@ -233,11 +232,11 @@ function acctmgr.addrole(acct,appid,serverid,role)
 		mongo:close(conn)
 	end
 	table.insert(rolelist,roleid)
-	acctmgr.saveroles(acct,appid,rolelist)
+	accountmgr.saveroles(account,appid,rolelist)
 	return Answer.code.OK
 end
 
-function acctmgr.getrole(appid,roleid)
+function accountmgr.getrole(appid,roleid)
 	if db_type == "redis" then
 		local db = redis:new()
 		local key = string.format("%s:role:%s",appid,roleid)
@@ -262,21 +261,21 @@ function acctmgr.getrole(appid,roleid)
 	end
 end
 
-function acctmgr.delrole(appid,roleid)
+function accountmgr.delrole(appid,roleid)
 	if not util.get_app(appid) then
 		return Answer.code.APPID_NOEXIST
 	end
-	local role = acctmgr.getrole(appid,roleid)
+	local role = accountmgr.getrole(appid,roleid)
 	if not role then
 		return Answer.code.ROLE_NOEXIST
 	end
-	local acct = role.acct
-	local rolelist = acctmgr.getroles(acct,appid)
+	local account = role.account
+	local rolelist = accountmgr.getroles(account,appid)
 	local found_pos = table.find(rolelist,roleid)
 	if not found_pos then
 		return Answer.code.ROLE_NOEXIST
 	end
-	ngx.log(ngx.INFO,string.format("op=delrole,acct=%s,appid=%s,role=%s",acct,appid,cjson.encode(role)))
+	ngx.log(ngx.INFO,string.format("op=delrole,account=%s,appid=%s,role=%s",account,appid,cjson.encode(role)))
 	if db_type == "redis" then
 		local db = redis:new()
 		local key = string.format("%s:role:%s",appid,roleid)
@@ -290,21 +289,20 @@ function acctmgr.delrole(appid,roleid)
 		mongo:close(conn)
 	end
 	table.remove(rolelist,found_pos)
-	acctmgr.saveroles(acct,appid,rolelist)
+	accountmgr.saveroles(account,appid,rolelist)
 	return Answer.code.OK
 end
 
 -- 增量更新
-function acctmgr.updaterole(appid,syncrole)
+function accountmgr.updaterole(appid,syncrole)
 	local roleid = assert(syncrole.roleid)
 	if not util.get_app(appid) then
 		return Answer.code.APPID_NOEXIST
 	end
-	local role = acctmgr.getrole(appid,roleid)
+	local role = accountmgr.getrole(appid,roleid)
 	if not role then
 		return Answer.code.ROLE_NOEXIST
 	end
-	ngx.log(ngx.DEBUG,string.format("op=updaterole,appid=%s,syncrole=%s",appid,cjson.encode(syncrole)))
 	table.update(role,syncrole)
 	if db_type == "redis" then
 		local db = redis:new()
@@ -323,7 +321,7 @@ function acctmgr.updaterole(appid,syncrole)
 end
 
 -- 有效范围: [minroleid,maxroleid)
-function acctmgr.genroleid(appid,idkey,minroleid,maxroleid)
+function accountmgr.genroleid(appid,idkey,minroleid,maxroleid)
 	minroleid = tonumber(minroleid)
 	maxroleid = tonumber(maxroleid)
 	assert(appid)
@@ -346,7 +344,7 @@ function acctmgr.genroleid(appid,idkey,minroleid,maxroleid)
 			return nil
 		end
 		redis:close(db)
-		return tostring(minroleid+range-1)
+		return minroleid+range-1
 	else
 		local valid_range = maxroleid - minroleid
 		local conn = mongo:new()
@@ -354,20 +352,20 @@ function acctmgr.genroleid(appid,idkey,minroleid,maxroleid)
 		local collection = db:get_col("roleid")
 		local doc = collection:find_and_modify({
 				query = {appid = appid,idkey = idkey,},
-				update = {["$inc"] = {value = 1}},
+				update = {["$inc"] = {sequence = 1}},
 				new = 1,
 				upsert = 1,
 			})
-		local range = doc.value
+		mongo:close(conn)
+		local range = doc.sequence
 		if range > valid_range then
 			return nil
 		end
-		mongo:close(conn)
-		return tostring(minroleid+range-1)
+		return minroleid+range-1
 	end
 end
 
-function acctmgr.gentoken(input)
+function accountmgr.gentoken(input)
 	local now = ngx.now()
 	local str = tostring(input) .. now
 	local md5 = resty_md5:new()
@@ -376,7 +374,7 @@ function acctmgr.gentoken(input)
 	return resty_string.to_hex(md5:final())
 end
 
-function acctmgr.gettoken(token)
+function accountmgr.gettoken(token)
 	--[[
 	local db = redis:new()
 	local retval = db:get(string.format("token:%s",token))
@@ -396,7 +394,7 @@ function acctmgr.gettoken(token)
 	end
 end
 
-function acctmgr.addtoken(token,data,expire)
+function accountmgr.addtoken(token,data,expire)
 	--[[
 	assert(data ~= nil)
 	expire = expire or 300
@@ -411,7 +409,7 @@ function acctmgr.addtoken(token,data,expire)
 	tokens:set(token,cjson.encode(data),expire)
 end
 
-function acctmgr.deltoken(token)
+function accountmgr.deltoken(token)
 	--[[
 	local db = redis:new()
 	db:del(string.format("token:%s",token))
@@ -423,17 +421,17 @@ end
 
 
 -- 角色换绑服务器
-function acctmgr.rebindsrv(acct,appid,new_serverid,old_roleid,new_roleid)
+function accountmgr.rebindserver(account,appid,new_serverid,old_roleid,new_roleid)
 	if not util.get_app(appid) then
 		return Answer.code.APPID_NOEXIST
 	end
-	if not acctmgr.getacct(acct) then
+	if not accountmgr.getaccount(account) then
 		return Answer.code.ACCT_NOEXIST
 	end
 	if not servermgr.getserver(appid,new_serverid) then
 		return Answer.code.SERVER_NOEXIST
 	end
-	local old_role = acctmgr.getrole(appid,old_roleid)
+	local old_role = accountmgr.getrole(appid,old_roleid)
 	if not old_role then
 		return Answer.code.ROLE_NOEXIST
 	end
@@ -443,45 +441,46 @@ function acctmgr.rebindsrv(acct,appid,new_serverid,old_roleid,new_roleid)
 			return Answer.code.OK
 		end
 	else
-		local new_role = acctmgr.getrole(appid,new_roleid)
+		local new_role = accountmgr.getrole(appid,new_roleid)
 		if new_role then
 			return Answer.code.ROLE_EXIST
 		end
 	end
-	ngx.log(ngx.INFO,string.format("op=rebindsrv,acct=%s,appid=%s,old_serverid=%s,new_serverid=%s,old_roleid=%s,new_roleid=%s",acct,appid,old_role.create_serverid,new_serverid,old_roleid,new_roleid))
+	ngx.log(ngx.INFO,string.format("op=rebindserver,account=%s,appid=%s,old_serverid=%s,new_serverid=%s,old_roleid=%s,new_roleid=%s",
+		account,appid,old_role.create_serverid,new_serverid,old_roleid,new_roleid))
 	if old_roleid == new_roleid then
-		acctmgr.updaterole(appid,{roleid=new_roleid,create_serverid=new_serverid})
+		accountmgr.updaterole(appid,{roleid=new_roleid,create_serverid=new_serverid})
 	else
-		acctmgr.delrole(appid,old_roleid)
+		accountmgr.delrole(appid,old_roleid)
 		old_role.roleid = new_roleid
-		acctmgr.addrole(acct,appid,new_serverid,old_role)
+		accountmgr.addrole(account,appid,new_serverid,old_role)
 	end
 	return Answer.code.OK
 end
 
 -- 角色换绑帐号
-function acctmgr.rebindacct(new_acct,appid,roleid)
+function accountmgr.rebindaccount(new_account,appid,roleid)
 	if not util.get_app(appid) then
 		return Answer.code.APPID_NOEXIST
 	end
-	local new_acctobj = acctmgr.getacct(new_acct)
-	if not new_acctobj then
+	local new_accountobj = accountmgr.getaccount(new_account)
+	if not new_accountobj then
 		return Answer.code.ACCT_NOEXIST
 	end
-	local role = acctmgr.getrole(appid,roleid)
+	local role = accountmgr.getrole(appid,roleid)
 	if not role then
 		return Answer.code.ROLE_NOEXIST
-	elseif role.acct == new_acct then
+	elseif role.account == new_account then
 		-- nochange
 		return Answer.code.OK
 	end
-	local old_acct = role.acct
-	ngx.log(ngx.INFO,string.format("op=rebindacct,appid=%s,roleid=%s,old_acct=%s,new_acct=%s",appid,roleid,old_acct,new_acct))
-	acctmgr.delrole(appid,roleid)
-	role.acct = new_acct
-	acctmgr.addrole(new_acct,appid,role.create_serverid,role)
+	local old_account = role.account
+	ngx.log(ngx.INFO,string.format("op=rebindaccount,appid=%s,roleid=%s,old_account=%s,new_account=%s",appid,roleid,old_account,new_account))
+	accountmgr.delrole(appid,roleid)
+	role.account = new_account
+	accountmgr.addrole(new_account,appid,role.create_serverid,role)
 	return Answer.code.OK
 end
 
 
-return acctmgr
+return accountmgr

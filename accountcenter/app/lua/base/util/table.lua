@@ -122,7 +122,7 @@ end
 
 --- 从表中查找符合条件的元素
 --@param[type=table] tbl 表
---@param[type=func] func 匹配函数
+--@param[type=func] func 匹配函数/值
 --@return k,v 找到的键值对
 function table.find(tbl,func)
 	local isfunc = type(func) == "function"
@@ -343,7 +343,7 @@ end
 --@param[type=any] val 删除的值
 --@param[type=int,opt] maxcnt 最大删除个数,不指定则无限制
 --@return[type=table] 删除元素的所有键构成的列表
-function table.del_val(t,val,maxcnt)
+function table.del_value(t,val,maxcnt)
 	local delkey = {}
 	for k,v in pairs(t) do
 		if v == val then
@@ -365,7 +365,7 @@ end
 --@param[type=any] val 删除的元素
 --@param[type=int,opt] maxcnt 最大删除个数,不指定则无限制
 --@return[type=table] 删除元素的所有位置构成的列表
-function table.remove_val(list,val,maxcnt)
+function table.remove_value(list,val,maxcnt)
 	local len = #list
 	maxcnt = maxcnt or len
 	local delpos = {}
@@ -597,7 +597,7 @@ end
 --	local args,err = table.check(args,{
 --		sign = {type="string"},
 --		appid = {type="string"},
---		roleid = {type="string"},
+--		roleid = {type="number"},
 --		image = {type="string"},
 --	})
 function table.check(args,descs,strict)

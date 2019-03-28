@@ -1,5 +1,5 @@
 require "app.init"
-local ltrace = require "gg.base.ltrace"
+local traceback = require "gg.base.traceback"
 
 local function _print(...)
 	print(...)
@@ -10,14 +10,14 @@ game = game or {}
 
 function game.init()
 	cjson.encode_sparse_array(true)
-	game.init_ltrace()
+	game.init_traceback()
 	logger.init()
 	local db_type = skynet.getenv("db_type") or "redis"
 	dbmgr.init(db_type)
 end
 
 function game.start()
-	logger.log("info","game","op=start")
+	logger.logf("info","game","op=start")
 	local debug_port = skynet.getenv("debug_port")
 	if debug_port then
 		-- record address + port for shell/gm.sh
@@ -117,11 +117,11 @@ function game.start()
 end
 
 function game.stop(reason)
-	logger.log("info","game","op=stoping")
+	logger.logf("info","game","op=stoping")
 	playermgr.kickall()
 	game.saveall()
 	skynet.timeout(300,function ()
-		logger.log("info","game","op=stoped")
+		logger.logf("info","game","op=stoped")
 		_print("stoped")
 		dbmgr.disconnect()
 		logger.shutdown()
@@ -131,7 +131,7 @@ function game.stop(reason)
 end
 
 function game.saveall()
-	logger.log("info","game","op=saveall")
+	logger.logf("info","game","op=saveall")
 	savemgr.saveall()
 end
 
@@ -213,7 +213,7 @@ function game.extract_cmd(typ,...)
 	elseif typ == "cluster" then
 		-- 集群(服务器间）消息
 		local protoname,cmd,cmd2 = select(2,...)
-		if protoname == "playermethod" then
+		if protoname == "playerexec" then
 			cmd = cmd2
 		end
 		if not game._cache then
@@ -238,10 +238,11 @@ function game.extract_cmd(typ,...)
 	end
 end
 
-function game.init_ltrace()
+function game.init_traceback()
+	-- 配置traceback收集规则,对于特定类型只收集指定字段
 	local collect_attrs  = {"linkid","linktype","fd","pid","id","name","sid","warid",
-		"flag","state","uid","account","acct","proto","addr"}
-	local tbls = {cplayer,clinkobj,profile,ltrace}
+		"flag","state","uid","account","proto","addr"}
+	local tbls = {cplayer,clinkobj,profile,traceback}
 	for i,tbl in ipairs(tbls) do
 		if not tbl.__tostring then
 			tbl.__tostring = function (obj)

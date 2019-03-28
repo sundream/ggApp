@@ -1,5 +1,5 @@
 ---函数包装器
---@script base.functor
+--@script gg.base.functor
 --@usage
 -- local func = functor(print,1,2,nil,nil)
 -- func(4,5)	-- 1,2,nil,nil,4,5

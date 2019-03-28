@@ -54,12 +54,16 @@ end
 function servermgr.checkserver(server)
 	local server,err = table.check(server,{
 		ip = {type="string"},									-- ip
+		cluster_ip = {type="string",optional=true},				-- 集群ip
+		cluster_port = {type="number",optional=true},			-- 集群端口
 		tcp_port = {type="number",optional=true},				-- tcp端口
 		kcp_port = {type="number",optional=true},				-- kcp端口
 		websocket_port = {type="number",optional=true},			-- websocket端口
 		debug_port = {type="number",optional=true},				-- debug端口
+		http_port = {type="number",optional=true},				-- http端口
 		id = {type="string"},									-- 服务器ID
 		name = {type="string"},									-- 服务器名
+		index = {type="number"},								-- 服务器编号
 		type = {type="string"},									-- 服务器类型
 		zoneid = {type="string"},								-- 区ID
 		zonename = {type="string"},								-- 区名

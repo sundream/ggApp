@@ -1,6 +1,9 @@
--- 扩展sproto,使其便于使用
-
----一个完整的sproto包格式如下
+---扩展sproto模块
+--@script gg.codec.sproto
+--@author sundream
+--@release 2018/12/25 10:30:00
+--@usage
+--一个完整的sproto包格式如下
 -- -------------
 -- |header|body|
 -- -------------

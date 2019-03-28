@@ -101,12 +101,10 @@ function kcp:send_request(protoname,request,callback)
 		session = self.session
 		self.sessions[session] = callback
 	end
-	local ud = app:message_ud()
 	local message = {
 		type = "REQUEST",
 		proto = protoname,
 		session = session,
-		ud = ud,
 		request = request,
 	}
 	local bin = app.codec:pack_message(message)
@@ -117,12 +115,10 @@ function kcp:send_request(protoname,request,callback)
 end
 
 function kcp:send_response(protoname,response,session)
-	local ud = app:message_ud()
 	local message = {
 		type = "RESPONSE",
 		proto = protoname,
 		session = session,
-		ud = ud,
 		response = response,
 	}
 	local bin = app.codec:pack_message(message)

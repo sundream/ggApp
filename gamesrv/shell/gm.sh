@@ -1,11 +1,17 @@
 #!/bin/sh
 
-# sh gm.sh 玩家ID 指令 参数...
-# eg: sh gm.sh 0 runcmd 'print(\"hello\")'
-# eg: curl 'http://127.0.0.1:18888/call/8 "gm","0 runcmd print(\"hello\")"'
-
 . ../skynet/debug_console.txt
 cmdline=$@
+if [ "$cmdline" = "" ]; then
+	echo 'sh gm.sh 玩家ID 指令 参数...'
+	echo '举例:'
+	echo 'sh gm.sh #提示用法'
+	echo 'sh gm.sh 0 help help'
+	echo 'sh gm.sh 0 exec '"'"'print(\"hello\")'"'"
+	echo 'curl '"'"'http://127.0.0.1:18888/call/8 "gm","0 exec print(\"hello\")"'"'"
+	exit 0;
+fi
+
 ip=127.0.0.1
 
 cmd="call $address \"gm\",\"$cmdline\""

@@ -4,33 +4,34 @@
 --@usage
 --api:		/api/account/server/update
 --protocol:	http/https
---method:
---	get		just support in debug mode
---	post
+--method:	post
 --params:
---	sign		[required] type=string help=签名
---	appid		[required] type=string help=appid
---	serverid	[required] type=string help=服务器ID
---	server		[required] type=table encode=json help=更新的服务器数据
---				server={
---					ip =				[required] type=string help=ip
---					tcp_port =			[required] type=number help=tcp端口
---					kcp_port =			[required] type=number help=kcp端口
---					websocket_port =	[required] type=number help=websocket端口
---					debug_port =		[required] type=number help=debug端口
---					name =				[required] type=string help=服务器名字
---					type =				[required] type=string help=服务器类型
---					zoneid =			[required] type=string help=区ID
---					zonename =			[required] type=string help=区名
---					area =				[required] type=string help=大区ID
---					areaname =			[required] type=string help=大区名
---					env =				[required] type=string help=部署环境ID
---					envname =			[required] type=string help=部署环境名(如内网环境,外网测试环境,外网正式环境)
---					opentime =			[required] type=number help=预计开服时间
---					isopen =			[optional] type=number default=1 help=是否开放
---					busyness =			[optional] type=number default=0.0 help=负载
---					newrole =			[optional] type=number default=1 help=是否可以新建角色
---				}
+--	type=table encode=json
+--	{
+--		sign		[required] type=string help=签名
+--		appid		[required] type=string help=appid
+--		serverid	[required] type=string help=服务器ID
+--		server		[required] type=table encode=json help=更新的服务器数据
+--					server={
+--						ip =				[optional] type=string help=ip
+--						tcp_port =			[optional] type=number help=tcp端口
+--						kcp_port =			[optional] type=number help=kcp端口
+--						websocket_port =	[optional] type=number help=websocket端口
+--						debug_port =		[optional] type=number help=debug端口
+--						name =				[optional] type=string help=服务器名字
+--						type =				[optional] type=string help=服务器类型
+--						zoneid =			[optional] type=string help=区ID
+--						zonename =			[optional] type=string help=区名
+--						area =				[optional] type=string help=大区ID
+--						areaname =			[optional] type=string help=大区名
+--						env =				[optional] type=string help=部署环境ID
+--						envname =			[optional] type=string help=部署环境名(如内网环境,外网测试环境,外网正式环境)
+--						opentime =			[optional] type=number help=预计开服时间
+--						isopen =			[optional] type=number default=1 help=是否开放
+--						busyness =			[optional] type=number default=0.0 help=负载
+--						newrole =			[optional] type=number default=1 help=是否可以新建角色
+--					}
+--	}
 --return:
 --	type=table encode=json
 --	{
@@ -38,18 +39,19 @@
 --		message =	[required] type=string help=返回码说明
 --	}
 --example:
---	curl -v 'http://127.0.0.1:8887/api/account/server/update?sign=debug&appid=appid&serverid=gamesrv_1&server=server_json_data'
---	curl -v 'http://127.0.0.1:8887/api/account/server/update' -d 'sign=debug&appid=appid&serverid=gamesrv_1&server=server_json_data'
+-- curl -v 'http://127.0.0.1:8887/api/account/server/update' -d '{"appid": "appid","serverid": "gamesrv_1", "sign": "debug", "server": "{\"kcp_port\": 8889,\"websocket_port\": 8890,\"tcp_port\": 8888}"}'
+
 
 local Answer = require "answer"
 local util = require "server.account.util"
-local acctmgr = require "server.account.acctmgr"
+local accountmgr = require "server.account.accountmgr"
 local servermgr = require "server.account.servermgr"
+local cjson = require "cjson"
 
 
-local handle = {}
+local handler = {}
 
-function handle.exec(args)
+function handler.exec(args)
 	local request,err = table.check(args,{
 		sign = {type="string"},
 		appid = {type="string"},
@@ -63,7 +65,7 @@ function handle.exec(args)
 		return
 	end
 	local appid = request.appid
-	local acct = request.acct
+	local account = request.account
 	local serverid = request.serverid
 	local server = request.server
 	local app = util.get_app(appid)
@@ -84,20 +86,11 @@ function handle.exec(args)
 	return
 end
 
-function handle.get()
-	local config = util.config()
-	if config.env ~= "dev" then
-		util.response_json(ngx.HTTP_FORBIDDEN)
-		return
-	end
-	local args = ngx.req.get_uri_args()
-	handle.exec(args)
-end
-
-function handle.post()
+function handler.post()
 	ngx.req.read_body()
-	local args = ngx.req.get_post_args()
-	handle.exec(args)
+	local args = ngx.req.get_body_data()
+	args = cjson.decode(args)
+	handler.exec(args)
 end
 
-return handle
+return handler

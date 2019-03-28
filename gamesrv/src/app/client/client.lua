@@ -8,9 +8,6 @@ function client.init(conf)
 	client.sessions = {}
 	-- 连线对象
 	client.linkobjs = ccontainer.new()
-	client._message_id = {}
-	-- token
-	client.tokens = cthistemp.new()
 end
 
 function client.onconnect(linktype,linkid,addr)
@@ -27,9 +24,8 @@ function client.onclose(linkid)
 	local pid = linkobj.pid
 	local player = playermgr.getplayer(pid)
 	if player then
-		player:exitgame("onclose")
+		player:disconnect("onclose")
 	end
-	client.dellinkobj(linkid)
 end
 
 function client.onmessage(linkid,message)
@@ -37,10 +33,7 @@ function client.onmessage(linkid,message)
 	if not linkobj then
 		return
 	end
-	if not client.check_message(linkid,message) then
-		return
-	end
-	logger.log("debug","client","op=recv,linkid=%s,linktype=%s,ip=%s,port=%s,pid=%s,message=%s",
+	logger.logf("debug","client","op=recv,linkid=%s,linktype=%s,ip=%s,port=%s,pid=%s,message=%s",
 		linkid,linkobj.linktype,linkobj.ip,linkobj.port,linkobj.pid,message)
 	local player
 	if linkobj.pid then
@@ -62,40 +55,12 @@ function client.onmessage(linkid,message)
 	end
 end
 
-function client.message_ud(linkid)
-	-- 如生成包序号
-	if not client._message_id[linkid] then
-		client._message_id[linkid] = {last_recv_id=0,last_send_id=0}
-	end
-	local data = client._message_id[linkid]
-	data.last_send_id = (data.last_send_id or 0) + 1
-	return data.last_send_id
-end
-
-function client.check_message(linkid,message)
-	local message_id = message.ud
-	if not message_id or message_id <= 0 then
-		return true
-	end
-	if not client._message_id[linkid] then
-		client._message_id[linkid] = {last_recv_id=0,last_send_id=0}
-	end
-	local data = client._message_id[linkid]
-	if data.last_recv_id >= message_id then
-		return false
-	end
-	data.last_recv_id = message_id
-	return true
-end
-
--- linktype: tcp/websocket/kcp
 function client._sendpackage(linkid,proto,request,callback)
 	local linkobj = client.getlinkobj(linkid)
 	if not linkobj then
 		return
 	end
 	local is_response = type(callback) == "number"
-	local ud = client.message_ud(linkid)
 	local message
 	if not is_response then
 		local session
@@ -107,7 +72,6 @@ function client._sendpackage(linkid,proto,request,callback)
 		message = {
 			type = "REQUEST",
 			session = session,
-			ud = ud,
 			proto = proto,
 			request = request
 		}
@@ -117,7 +81,6 @@ function client._sendpackage(linkid,proto,request,callback)
 		message = {
 			type = "RESPONSE",
 			session = session,
-			ud = ud,
 			proto = proto,
 			response = response,
 		}
@@ -127,7 +90,7 @@ function client._sendpackage(linkid,proto,request,callback)
 	if not pid and linkobj.master then
 		pid = linkobj.master.pid
 	end
-	logger.log("debug","client","op=send,linkid=%s,linktype=%s,ip=%s,port=%s,pid=%s,message=%s",
+	logger.logf("debug","client","op=send,linkid=%s,linktype=%s,ip=%s,port=%s,pid=%s,message=%s",
 		linkid,linktype,linkobj.ip,linkobj.port,pid,message)
 	if linktype == "tcp" then
 		skynet.send(client.tcp_gate,"lua","write",linkid,message)
@@ -201,7 +164,6 @@ function client.dellinkobj(linkid)
 			client.unbind_slave(linkobj.master)
 		end
 	end
-	client._message_id[linkid] = nil
 	return linkobj
 end
 
@@ -251,13 +213,23 @@ function client.forward(proto,address)
 	end
 end
 
-function client.http_onmessage(linkobj,uri,query,header,body)
-	logger.log("debug","http","op=recv,linkid=%s,ip=%s,port=%s,method=%s,uri=%s,query=%s,header=%s,body=%s",
-		linkobj.linkid,linkobj.ip,linkobj.port,linkobj.method,uri,query,header,body)
+function client.http_onmessage(linkobj,uri,header,query,body)
+	linkobj.method = string.lower(linkobj.method)
+	logger.logf("debug","http","op=recv,linkid=%s,ip=%s,port=%s,method=%s,uri=%s,header=%s,query=%s,body=%s",
+		linkobj.linkid,linkobj.ip,linkobj.port,linkobj.method,uri,header,query,body)
 
-	local func = net.http_cmd(uri)
-	if func then
-		func(linkobj,query,header,body)
+	local handler = net.http_cmd(uri)
+	if handler then
+		local func = handler[linkobj.method]
+		if func then
+			func(linkobj,header,query,body)
+		else
+			-- method not implemented
+			httpc.response(linkobj.linkid,501)
+		end
+	else
+		-- not found
+		httpc.response(linkobj.linkid,404)
 	end
 	skynet.ret(nil)
 end

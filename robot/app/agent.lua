@@ -1,5 +1,5 @@
 local skynet = require "skynet"
-local config = require "app.config.user"
+local config = require "app.config.custom"
 local tcp = require "app.client.tcp"
 local kcp = require "app.client.kcp"
 local websocket = require "app.client.websocket"

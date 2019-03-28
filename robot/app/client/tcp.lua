@@ -2,7 +2,7 @@ local skynet = require "skynet"
 local socket = require "skynet.socket"
 local crypt = require "skynet.crypt"
 local socket_proxy = require "socket_proxy"
-local config = require "app.config.user"
+local config = require "app.config.custom"
 local handshake = require "app.client.handshake"
 require "app.codec.init"
 

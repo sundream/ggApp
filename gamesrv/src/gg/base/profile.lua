@@ -35,7 +35,7 @@ function profile.stat(record,name,onerror,func,...)
 		if profile.threshold and time > profile.threshold then
 			cost.overloadcnt = cost.overloadcnt + 1
 			if profile.log_overload then
-				logger.log("info","profile","op=overload,name=%s,time=%ss",name,time)
+				logger.logf("info","profile","op=overload,name=%s,time=%ss",name,time)
 			end
 		end
 	end

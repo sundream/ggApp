@@ -96,7 +96,7 @@ end
 function cplayer:savetodatabase()
 	-- 保活token用以作快速重连
 	if (not self.debuglogin) and self.token then
-		client.tokens:expire(self.token,302)
+		playermgr.tokens:expire(self.token,302)
 	end
 	if dbmgr.db_type == "redis" then
 		local db = dbmgr.getdb()
@@ -134,7 +134,7 @@ end
 
 function cplayer:create(conf)
 	self.name = assert(conf.name)
-	self.account = assert(conf.acct)
+	self.account = assert(conf.account)
 end
 
 function cplayer:entergame(replace)
@@ -147,21 +147,31 @@ function cplayer:entergame(replace)
 	self:onlogin(replace)
 end
 
-function cplayer:exitgame(reason)
-	if not self:isdisconnect() then
-		self:disconnect(reason)
+--- 主动掉线
+--@breif 主动掉线会触发退出游戏流程
+--@param[type=string] reason 原因
+function cplayer:disconnect(reason)
+	if self:isdisconnect() then
+		return
 	end
+	self:ondisconnect(reason)
+	local linkobj = self.linkobj
+	playermgr.unbind_linkobj(self)
+	client.dellinkobj(linkobj.linkid)
+	-- 顶号不退出游戏
+	if reason ~= "replace" then
+		self:exitgame(reason)
+	end
+end
+
+function cplayer:exitgame(reason)
 	xpcall(self.onlogoff,onerror,self,reason)
 	-- will call savetodatabase
 	playermgr.delplayer(self.pid)
 end
 
-function cplayer:isonline()
-	return playermgr.isonline(self)
-end
-
 function cplayer:isdisconnect()
-	if not self:isonline() then
+	if not self.linkobj then
 		return true
 	end
 	return false
@@ -181,7 +191,7 @@ function cplayer:_synctoac(online)
 		name = self.name,
 		lv = self.lv,
 		gold = self.gold,
-		now_serverid = gg.server:serverid(),
+		now_serverid = gg.server.id,
 		online = online,
 	}
 	local accountcenter = skynet.getenv("accountcenter")
@@ -192,12 +202,12 @@ function cplayer:_synctoac(online)
 		roleid = self.pid,
 		role = cjson.encode(role),
 	})
-	httpc.post(accountcenter,url,req)
+	httpc.postx(accountcenter,url,req)
 end
 
 function cplayer:oncreate()
-	local my_serverid = cserver:serverid()
-	logger.log("info","login","op=oncreate,serverid=%s,account=%s,pid=%s,linktype=%s,linkid=%s,ip=%s,port=%s,version=%s,name=%s",
+	local my_serverid = gg.server.id
+	logger.logf("info","login","op=oncreate,serverid=%s,account=%s,pid=%s,linktype=%s,linkid=%s,ip=%s,port=%s,version=%s,name=%s",
 		my_serverid,self.account,self.pid,self.linktype,self.linkid,self.ip,self.port,self.version,self.name)
 	for k,obj in pairs(self.component) do
 		obj.loadstate = "loaded"
@@ -220,9 +230,9 @@ function cplayer:compat_todo_delete(replace)
 end
 
 function cplayer:onlogin(replace)
-	local my_serverid = cserver:serverid()
+	local my_serverid = gg.server.id
 	local from_serverid = self.kuafu_forward and self.kuafu_forward.from_serverid
-	logger.log("info","login","op=onlogin,serverid=%s,from_serverid=%s,account=%s,pid=%s,linktype=%s,linkid=%s,ip=%s,port=%s,replace=%s,version=%s",
+	logger.logf("info","login","op=onlogin,serverid=%s,from_serverid=%s,account=%s,pid=%s,linktype=%s,linkid=%s,ip=%s,port=%s,replace=%s,version=%s",
 		my_serverid,from_serverid,self.account,self.pid,self.linktype,self.linkid,self.ip,self.port,replace,self.version)
 	self:compat(replace)
 	for _,k in ipairs(self.onloginlist) do
@@ -236,9 +246,10 @@ function cplayer:onlogin(replace)
 		end
 	end
 	if self.kuafu_forward then
-		-- kuafu_forward每次连接都会赋值,仅当跨服登录时才会有值
-		if self.kuafu_forward.onlogin then
-			local onlogin = unpack_function(self.kuafu_forward.onlogin)
+		local kuafu_forward = self.kuafu_forward
+		self.kuafu_forward = nil
+		if kuafu_forward.onlogin then
+			local onlogin = unpack_function(kuafu_forward.onlogin)
 			xpcall(onlogin,onerror)
 		end
 	end
@@ -246,9 +257,9 @@ function cplayer:onlogin(replace)
 end
 
 function cplayer:onlogoff(reason)
-	local my_serverid = cserver:serverid()
+	local my_serverid = gg.server.id
 	local from_serverid = self.kuafu_forward and self.kuafu_forward.from_serverid
-	logger.log("info","login","op=onlogoff,serverid=%s,from_serverid=%s,account=%s,pid=%s,linktype=%s,linkid=%s,ip=%s,port=%s,version=%s,reason=%s",
+	logger.logf("info","login","op=onlogoff,serverid=%s,from_serverid=%s,account=%s,pid=%s,linktype=%s,linkid=%s,ip=%s,port=%s,version=%s,reason=%s",
 		my_serverid,from_serverid,self.account,self.pid,self.linktype,self.linkid,self.ip,self.port,self.version,reason)
 	for k,obj in pairs(self.component) do
 		if obj.onlogoff then
@@ -260,18 +271,8 @@ function cplayer:onlogoff(reason)
 	self:synctoac(false)
 end
 
-function cplayer:disconnect(reason)
-	if self:isdisconnect() then
-		return
-	end
-	local linkobj = self.linkobj
-	playermgr.unbind_linkobj(self)
-	client.dellinkobj(linkobj.linkid)
-	self:ondisconnect(reason)
-end
-
 function cplayer:ondisconnect(reason)
-	logger.log("info","login","op=ondisconnect,pid=%s,linkid=%s,ip=%s,port=%s,reason=%s",
+	logger.logf("info","login","op=ondisconnect,pid=%s,linkid=%s,ip=%s,port=%s,reason=%s",
 		self.pid,self.linkid,self.ip,self.port,reason)
 	for k,obj in pairs(self.component) do
 		if obj.ondisconnect then
