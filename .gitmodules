@@ -28,3 +28,27 @@
 [submodule "gamesrv/src/gg/like_skynet/3rd/lua-websocket"]
 	path = gamesrv/src/gg/like_skynet/3rd/lua-websocket
 	url = https://github.com/sundream/lua-websocket
+[submodule "gg/like_skynet/3rd/lfs"]
+	path = gg/like_skynet/3rd/lfs
+	url = https://github.com/sundream/luafilesystem.git
+[submodule "gg/like_skynet/3rd/lua-aes"]
+	path = gg/like_skynet/3rd/lua-aes
+	url = https://github.com/sundream/lua-aes.git
+[submodule "gg/like_skynet/3rd/lua-cjson"]
+	path = gg/like_skynet/3rd/lua-cjson
+	url = https://github.com/sundream/lua-cjson.git
+[submodule "gg/like_skynet/3rd/lua-protobuf"]
+	path = gg/like_skynet/3rd/lua-protobuf
+	url = https://github.com/sundream/lua-protobuf.git
+[submodule "gg/like_skynet/3rd/crab"]
+	path = gg/like_skynet/3rd/crab
+	url = https://github.com/sundream/crab.git
+[submodule "gg/like_skynet/3rd/lua-webclient"]
+	path = gg/like_skynet/3rd/lua-webclient
+	url = https://github.com/sundream/lua-webclient.git
+[submodule "gg/like_skynet/3rd/lua-websocket"]
+	path = gg/like_skynet/3rd/lua-websocket
+	url = https://github.com/sundream/lua-websocket.git
+[submodule "gg/like_skynet/3rd/skynet_package"]
+	path = gg/like_skynet/3rd/skynet_package
+	url = https://github.com/sundream/skynet_package.git

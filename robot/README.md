@@ -18,8 +18,8 @@
 	./skynet ../../app/config/robot.config &
 	telnet 127.0.0.1 6666
 	启动若干机器人:
-	start app/service/newrobot 100 1000001  <=> 从1000001角色ID开始启动100个机器人
-	start app/service/newrobot 100 1000101  <=> 继续从1000101角色ID开始启动100个机器人
+	start app/service/newrobot 100 1000000  <=> 从1000001角色ID开始启动100个机器人
+	start app/service/newrobot 100 1000100  <=> 继续从1000100角色ID开始启动100个机器人
 	// app/config/robot.config中有gate_type,ip,port配置,更改这些字段即可改变测试服务器
 	// 日志可见log/skynet.log
 	// 现在默认压测逻辑是发送心跳包,你可以在app/service/robot.lua#onlogin中自定义压测逻辑

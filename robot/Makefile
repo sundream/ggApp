@@ -30,7 +30,7 @@ $(LUACLIB_PATH)/cjson.so : 3rd/lua-cjson/strbuf.c 3rd/lua-cjson/fpconv.c 3rd/lua
 
 # lkcp
 $(LUACLIB_PATH)/lkcp.so : 3rd/kcp/lkcp.c 3rd/kcp/ikcp.c
-	$(CC) $(CFLAGS) $(SHARED) $^ -o $@
+	$(CC) $(CFLAGS) $(SHARED) $^ -o $@ -DRECV_BUFFER_LEN=64*1024
 
 # crypt
 $(LUACLIB_PATH)/crypt.so : 3rd/lua-crypt/lua-crypt.c 3rd/lua-crypt/lsha1.c

@@ -1,0 +1,6 @@
+require "gg.init"
+require "app.http.init"
+require "app.net.init"
+require "app.gm.init"
+require "app.account.init"
+require "app.gg.init"

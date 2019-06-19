@@ -9,17 +9,17 @@ message C2GS_CheckToken {
 	string token = 1;		//账号中心登录后返回的认证token
 	string account = 2;		//帐号
 	string version = 3;	//版本:如:1.0.0
-	string forward = 4;	//透传参数
+	string forward = 4;	//透传参数,CreateRole--创建角色,EnterGame--进入游戏
 }
 
 // @id=103
 message C2GS_CreateRole {
 	int64 roleid = 1;	//仅在调试登录时有用(正常创建角色不发,服务端控制角色ID生成)
-	string account = 2;
-	string name = 3;
-	int32 job = 4;
-	int32 sex = 5;		//0--男，1--女
-	int32 shapeid = 6;
+	string account = 2;		// 账号
+	string name = 3;		// 名字
+	string job = 4;			// 职业
+	int32 sex = 5;			// 0--男，1--女
+	string shapeid = 6;		// 造型id
 }
 
 // @id=104
@@ -42,11 +42,11 @@ message C2GS_Ping {
 message RoleType {
 	int64 roleid = 1;
 	string name = 2;
-	int32 job = 3;					// 职业
+	string job = 3;					// 职业
 	int32 sex = 4;					// 0--男，1--女
-	int32 shapeid = 5;				// 造型
-	int32 lv = 6;
-	string create_serverid = 7;	// 创建所在服
+	string shapeid = 5;				// 造型id
+	int32 lv = 6;					// 等级
+	string create_serverid = 7;		// 创建所在服
 	string now_serverid = 8;		// 当前所在服
 	int32 createtime = 9;			// 创建时间
 }
@@ -104,7 +104,7 @@ message GS2C_Kick {
 // @id=2
 message GS2C_Pong {
 	string str = 1;		// 透传C2GS_Ping#str
-	int32 time = 2;		// 服务器时间
+	int32 time = 2;		// 服务器时间(毫秒为单位)
 }
 
 // 开始进入游戏

@@ -7,18 +7,18 @@ C2GS_CheckToken 1002 {
 		token 0 : string	#账号中心登录后返回的认证token
 		account 1 : string		#帐号
 		version 2 : string  #版本:如:1.0.0
-		forward 3 : string	#透传参数
+		forward 3 : string	#透传参数,CreateRole--创建角色,EnterGame--进入游戏
 	}
 }
 
 C2GS_CreateRole 1003 {
 	request {
-		roleid 0 : integer	#仅在调试登录时有用(正常创建角色不发,服务端控制角色ID生成)
-		account 1 : string
-		name 2 : string
-		job 3 : integer
-		sex 4 : integer		#0--男,1--女
-		shapeid 5 : integer
+		roleid 0 : integer	# 仅在调试登录时有用(正常创建角色不发,服务端控制角色ID生成)
+		account 1 : string	# 账号
+		name 2 : string		# 姓名
+		job 3 : string		# 职业
+		sex 4 : integer		# 0--男,1--女
+		shapeid 5 : string	# 造型id
 	}
 }
 
@@ -39,12 +39,13 @@ C2GS_Ping 1006 {
 }
 
 #GS2C
-.RoleType { roleid 0 : integer
-	name 1 : string
-	job 2 : integer				# 职业
+.RoleType {
+	roleid 0 : integer			# 角色ID
+	name 1 : string				# 名字
+	job 2 : string				# 职业
 	sex 3 : integer				# 0--男,1--女
-	shapeid 4 : integer			# 造型
-	lv 5 : integer
+	shapeid 4 : string			# 造型id
+	lv 5 : integer				# 等级
 	create_serverid 6 : string	# 创建所在服
 	now_serverid 7 : string		# 当前所在服
 	createtime 8 : integer		# 创建时间

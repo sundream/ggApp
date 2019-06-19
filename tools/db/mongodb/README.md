@@ -1,6 +1,3 @@
-router+configsvr+shard建立mongo分片集群
-=======================================
-
 * 环境
 	* ubuntu: 18.04.1 LTS
 	* mongod: 4.0.5
@@ -11,9 +8,11 @@ router+configsvr+shard建立mongo分片集群
 ```
 mkdir ~/db
 cp -R tools/db/* ~/db
-sed -i "s|/home/ubuntu|$HOME|g" `grep /home/ubuntu -rl ~/db`
+sed -i "s|/root|$HOME|g" `grep /root -rl ~/db`
 ```
 
+router+configsvr+shard搭建mongo分片集群
+=======================================
 * 构成
 	```
 	1 configsvr replicaSet + 3 shard replicaSet + 3 router
@@ -33,7 +32,34 @@ sed -i "s|/home/ubuntu|$HOME|g" `grep /home/ubuntu -rl ~/db`
 
 * 启动
 	```
-	sh tools/script/startallmongo.sh
+	sh tools/script/start_mongo_cluster.sh
 	// 首次启动,执行下面脚本初始化集群(等mongodb启动完毕后在执行)
 	sh ~/db/mongodb/js/initCluster.sh
+	```
+
+* 关闭
+	```
+	sh tools/script/stop_mongo_cluster.sh
+	```
+
+搭建mongo单例
+=============
+* 构成
+	```
+    默认监听26000端口
+	```
+
+* 配置文件示例  
+	```
+    见~/db/mongodb/mongodb/mongodb.conf
+	```
+
+* 启动
+	```
+    mongod -f ~/db/mongodb/mongodb/mongodb.conf &
+	```
+
+* 关闭
+	```
+	pkill -2 mongod
 	```

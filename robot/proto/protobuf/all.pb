@@ -1,10 +1,13 @@
 
-o
+¶
 common.proto"W
 MessageHeader
 type (Rtype
 session (Rsession
-request (Rrequestbproto3
+request (Rrequest"E
+ItemSmallInfo
+itemType (RitemType
+itemNum (RitemNumbproto3
  
 
 login.proto"u
@@ -17,9 +20,9 @@ o
 roleid (Rroleid
 account (	Raccount
 name (	Rname
-job (Rjob
+job (	Rjob
 sex (Rsex
-shapeid (Rshapeid"(
+shapeid (	Rshapeid"(
 C2GS_EnterGame
 roleid (Rroleid"
 C2GS_ExitGame"
@@ -28,9 +31,9 @@ o
 RoleType
 roleid (Rroleid
 name (	Rname
-job (Rjob
+job (	Rjob
 sex (Rsex
-shapeid (Rshapeid
+shapeid (	Rshapeid
 lv (Rlv'
 create_serverid (	RcreateServerid!
 now_serverid (	RnowServerid

@@ -1,0 +1,1 @@
+require "gg.console.console"

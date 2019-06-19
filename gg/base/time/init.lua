@@ -1,0 +1,6 @@
+gg.time = require "gg.base.time.time"
+require "gg.base.time.today"
+require "gg.base.time.thisweek"
+require "gg.base.time.thisweek2"
+require "gg.base.time.thismonth"
+require "gg.base.time.thistemp"

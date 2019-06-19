@@ -14,8 +14,7 @@
 * 运行
 	```
 	cd ~/ggApp
-	# ubuntu-14下可能要执行sudo ln -s /lib/x86_64-linux-gnu/libreadline.so.6 /lib/x86_64-linux-gnu/libreadline.so.7
-	client/3rd/lua/5.3/bin/lua client/app/app.lua
+	client/3rd/lua/lua client/app/app.lua
 	// 执行后你将会看到如下提示
 	Game Client 0.0.1 Welcome!
 	exit() -> exit app
@@ -23,6 +22,6 @@
 	// 输入help()即可查看帮助文档。你也可以输入任何lua脚本
 
 	// windows
-	client/3rd/lua/5.3/bin/lua client/app/app.lua
+	client/3rd/lua/lua client/app/app.lua
 	再通过telnet 127.0.0.1 6667连接来操作,telnet可以在安装mingw时一并安装
 	```

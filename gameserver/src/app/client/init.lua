@@ -1,0 +1,1 @@
+require "app.client.client"
