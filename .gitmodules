@@ -55,3 +55,6 @@
 [submodule "gg/skynet"]
 	path = gg/skynet
 	url = https://github.com/sundream/skynet.git
+[submodule "gg/like_skynet/3rd/lua-snowflake"]
+	path = gg/like_skynet/3rd/lua-snowflake
+	url = https://github.com/sundream/lua-snowflake.git
