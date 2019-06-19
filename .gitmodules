@@ -52,3 +52,6 @@
 [submodule "gg/like_skynet/3rd/skynet_package"]
 	path = gg/like_skynet/3rd/skynet_package
 	url = https://github.com/sundream/skynet_package.git
+[submodule "gg/skynet"]
+	path = gg/skynet
+	url = https://github.com/sundream/skynet.git
