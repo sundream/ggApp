@@ -3,7 +3,7 @@ local netlogin = {
     GS2C = {},
 }
 
-netlogin.version = skynet.getenv("version") or "0.0.1"
+netlogin.version = require "app.version"
 
 local C2GS = netlogin.C2GS
 local GS2C = netlogin.GS2C

@@ -30,38 +30,20 @@ function robot.onlogin()
     skynet.error(string.format("op=onlogin,linktype=%s,linkid=%s,roleid=%s",linkobj.linktype,linkobj.linkid,roleid))
     robot.heartbeat()
     -- todo something
-    robot.linkobj:send_request("C2GS_GM",{
-        cmd = "setGold 1000",
-    })
-    robot.linkobj:send_request("C2GS_DDZGame_EnterHall",{hallId = 1})
-    robot.linkobj:wait("GS2C_DDZGame_EnterHallSucc",function (linkobj,message)
-        robot.linkobj:send_request("C2GS_DDZGame_Match",{})
-        robot.waitGameOver()
-    end)
-end
-
-function robot.waitGameOver()
-    robot.linkobj:wait("GS2C_DDZGame_GameOver",function (linkobj,message)
-        robot.linkobj:send_request("C2GS_GM",{
-            cmd = "setGold 1000",
-        })
-        robot.linkobj:send_request("C2GS_DDZGame_ReadyGame",{})
-        robot.waitGameOver()
-    end)
 end
 
 function robot.heartbeat()
     if robot.linkobj.closed then
         return
     end
-    local interval = 1000
+    local interval = 1000   -- 10s
     skynet.timeout(interval,robot.heartbeat)
     robot.linkobj:send_request("C2GS_Ping",{
         str = "heartbeat",
     })
     robot.linkobj:wait("GS2C_Pong",function (linkobj,message)
         local args = message.args
-        local time = args.time
+        local time = args.time  -- 返回的是毫秒
         local delay
         if not robot.linkobj.time then
             delay = 0
@@ -76,4 +58,5 @@ function robot.heartbeat()
 end
 
 agent.start(robot)
+
 return robot

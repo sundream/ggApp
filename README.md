@@ -9,7 +9,6 @@ Table of Contents
 * [名字](#ggApp)
 * [状态](#状态)
 * [特点](#特点)
-* [一键部署](#一键部署)
 * [服务器](#服务器)
 * [客户端](#客户端)
 * [压测工具](#压测工具)
@@ -17,6 +16,7 @@ Table of Contents
 * [目录结构](#目录结构)
 * [开发环境](#开发环境)
 * [文档](#文档)
+* [一键部署](#一键部署)
 * [社区](#社区)
 * [证书](#证书)
 
@@ -27,13 +27,7 @@ Table of Contents
 特点
 ====
 * 对skynet引擎无任何修改
-* 易于使用
-
-
-一键部署
-========
-使用[ggApp-ansible](https://github.com/sundream/ggApp-ansible)一键部署，他会自动帮我们
-安装必要软件,安装依赖,生成db配置文件等.
+* 结构简单,易于使用
 
 服务器
 ======
@@ -55,11 +49,11 @@ Table of Contents
 
 	* 其他工具(非必要安装)
 		* [lua-5.3.5](https://www.lua.org/download.html)
-		* python-2.7.15
+		* python-2.7.16
 			```
-			curl -R -O https://www.python.org/ftp/python/2.7.15/Python-2.7.15.tgz
-			tar -zxvf Python-2.7.15.tgz
-			cd Python-2.7.15
+			curl -R -O https://www.python.org/ftp/python/2.7.15/Python-2.7.16.tgz
+			tar -zxvf Python-2.7.16.tgz
+			cd Python-2.7.16
 			./configure
 			make
 			sudo make install
@@ -208,7 +202,7 @@ see [robot/README.md](https://github.com/sundream/ggApp/blob/master/robot/README
 ========
 * 大致目录结构
 ```
-+~/ggApp
++~/ggApp  
     +gg                         // 公共代码
 	+loginserver				// 登陆服
 	+gameserver					// 游戏服
@@ -231,7 +225,7 @@ see [robot/README.md](https://github.com/sundream/ggApp/blob/master/robot/README
 
 开发环境
 ========
-* centos运行服务器+window开发
+* centos运行服务器+window开发  
 ```
 	1. 安装samba
 		sudo yum install -y samba samba-client
@@ -261,7 +255,6 @@ see [robot/README.md](https://github.com/sundream/ggApp/blob/master/robot/README
 	5. window下连接samba
 		在资源管理器地址栏输入: \\$IP即可看到共享文件$USER
 		右键$USER文件夹,点击<映射为网络驱动>,以便以后方便访问
-		
 ```
 
 文档
@@ -291,6 +284,10 @@ see [robot/README.md](https://github.com/sundream/ggApp/blob/master/robot/README
 
 [Back to TOC](#table-of-contents)
 
+一键部署
+========
+使用[ggApp-ansible](https://github.com/sundream/ggApp-ansible)一键部署，他会自动帮我们
+安装必要软件,安装依赖,生成db配置文件等.
 
 社区
 ====

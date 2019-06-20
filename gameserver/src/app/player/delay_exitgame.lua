@@ -82,7 +82,6 @@ end
 --@param [type=int,opt=60] delay_time 延迟下线时间
 --@return [type=int] 新开启的定时器ID
 function cplayer:delay_exitgame(delay_time)
-    logger.print(self.pid,"delay_exitgame",delay_time)
     if self.delay_exitgame_timerid then
         gg.timer:deltimer(self.delay_exitgame_timerid)
     end

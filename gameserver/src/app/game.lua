@@ -147,11 +147,7 @@ function game.dispatch(session,source,typ,...)
             if cmd == "onmessage" then
                 local linkobj = gg.client:getlinkobj(linkid)
                 if linkobj then
-                    gg.client:sendpackage(linkobj,"GS2C_Error",{
-                        error = err,
-                        cmd = message.cmd,
-                        session = message.session,
-                    })
+                    -- todo: say error to client?
                 end
             end
         end

@@ -57,7 +57,7 @@ end
 --      type = 1,           -- 请求包
 --      session = session,  -- 会话ID
 --      ud = ud,            -- 自定义数据
---      proto = proto,      -- 协议名
+--      cmd = cmd,          -- 协议名
 --      args = args,        -- 协议参数(请求参数)
 --  })
 --
@@ -66,7 +66,7 @@ end
 --      type = 2,           -- 回复包
 --      session = session,  -- 会话ID
 --      ud = ud,            -- 自定义数据
---      proto = proto,      -- 协议名
+--      cmd = cmd,          -- 协议名
 --      args = args,        -- 协议参数(回复参数)
 --  })
 function codec:pack_message(message)

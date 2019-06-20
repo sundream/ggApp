@@ -44,7 +44,7 @@ return {
         type = "protobuf",
         pbfile = "src/proto/protobuf/all.pb",
         idfile = "src/proto/protobuf/message_define.lua",
-    }
+    },
     proto = {
         type = "sproto",
         c2s = "src/proto/sproto/all.spb",

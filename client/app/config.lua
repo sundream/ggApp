@@ -7,7 +7,6 @@ return {
         port = 8885,
     },
     --[[
-    -- protobuf
     proto = {
         type = "protobuf",
         pbfile = "client/proto/protobuf/all.pb",
@@ -22,5 +21,5 @@ return {
     ]]
     proto = {
         type = "json",
-    }
+    },
 }

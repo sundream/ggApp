@@ -1,12 +1,7 @@
 syntax = "proto3";
 
 message MessageHeader {
-	int32 type = 1;	        // 消息ID
+	int32 type = 1;	        // 消息类型ID
 	int32 session = 2;	// rpc会话ID,无需对方回复时可以发0,否则,保证唯一
 	bool request = 3;	// true--请求,false--回复
-}
-
-message ItemSmallInfo {
-	int32 itemType = 1;	//道具类型
-	int32 itemNum = 2;	//道具数量
 }

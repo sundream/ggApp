@@ -7,7 +7,7 @@ return {
         ip = "127.0.0.1",
         port = 8885,
     },
-	--[[
+    --[[
     proto = {
         type = "protobuf",
         pbfile = "../../proto/protobuf/all.pb",
@@ -19,7 +19,7 @@ return {
         s2c = "../../proto/sproto/all.spb",
         binary = true,
     },
-	]]
+    ]]
     proto = {
         type = "json",
     }

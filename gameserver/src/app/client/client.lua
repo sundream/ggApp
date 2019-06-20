@@ -43,7 +43,9 @@ function cclient:onmessage(linkid,message)
     else
         if not net.unauth_cmds[cmd] then
             if not gg.server:isstable() then
-                gg.client:sendpackage(linkobj,"GS2C_Say",{msg=string.format("协议(%s)已被忽略,请先登录",message.cmd)})
+                logger.logf("warn","client","op=recv,linkid=%s,linktype=%s,ip=%s,port=%s,message=%s,result=ignore",
+                    linkid,linkobj.linktype,linkobj.ip,linkobj.port,message)
+                return
             end
             return
         end

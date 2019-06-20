@@ -81,8 +81,6 @@ function gm.say(msg,pid)
     end
     if pid and pid ~= 0 then
         -- todo: say with client
-        gg.client:sendpackage(pid,"GS2C_GMSay",{msg=msg})
-        --gg.client:sendpackage(pid,"GS2C_Say",{msg=msg})
     end
     return msg
 end

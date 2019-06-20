@@ -52,7 +52,7 @@ function sproto:unpack_message(msg,sz)
         end
         return {
             type = 1,
-            proto = proto.name,
+            cmd = proto.name,
             args = args,
             --tag = header.type,
             session = header.session,
@@ -70,7 +70,7 @@ function sproto:unpack_message(msg,sz)
         end
         return {
             type = "RESPONSE",
-            proto = proto.name,
+            cmd = proto.name,
             args = args,
             --tag = tag,
             session = header.session,
@@ -149,4 +149,3 @@ function sproto:packagename(packagename)
 end
 
 return sproto
-
