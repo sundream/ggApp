@@ -23,7 +23,7 @@ end
 
 function util.zonelist_by_version(appid,version)
     -- mongo3.4.6存储的key不能包含"."
-    version = string.sub(version,"%.","_")
+    version = string.gsub(version,"%.","_")
     local app = util.get_app(appid)
     return app.version_whitelist[version]
 end
