@@ -20,7 +20,7 @@
 --      result =    [required] type=list help=执行指令返回的参数列表
 --  }
 --example:
---  curl -v 'http://127.0.0.1:8886/api/rpc' -d '{"sign":"debug","cmd":"tonumber","args":["10"]}'
+--  curl -v 'http://127.0.0.1:8886/api/rpc' -d '{"sign":"debug","cmd":"tonumber","args":"[\"10\"]"}'
 
 local handler = {}
 
@@ -29,7 +29,7 @@ function handler.exec(linkobj,header,args)
         sign = {type="string"},
         module = {type="string",optional=true},
         cmd = {type="string"},
-        args = {type="table"},
+        args = {type="json"},
     })
     if err then
         local response = httpc.answer.response(httpc.answer.code.PARAM_ERR)

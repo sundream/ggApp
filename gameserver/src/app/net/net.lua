@@ -9,7 +9,6 @@ end
 
 function cnet:register_module(name,module,prefix)
     prefix = prefix or "C2GS"
-    assert(self[name] == nil)
     self[name] = module
     for proto,handler in pairs(module[prefix]) do
         self:register_cmd(prefix.."_"..proto,handler)

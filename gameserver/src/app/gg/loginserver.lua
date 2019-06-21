@@ -303,7 +303,7 @@ function cloginserver:rpc(module,cmd,args)
        appid = self.appid,
        module = module,
        cmd = cmd,
-       args = args,
+       args = cjson.encode(args or {}),
     })
     return self:decode_response(self:post(url,req))
 end

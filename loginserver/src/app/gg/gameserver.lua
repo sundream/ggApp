@@ -45,7 +45,7 @@ function cgameserver:rpc(module,cmd,args)
     local req = self:encode_request({
        module = module,
        cmd = cmd,
-       args = args or {},
+       args = cjson.encode(args or {}),
     })
     return self:decode_response(self:post(url,req))
 end
