@@ -11,6 +11,27 @@ cp -R tools/db/* ~/db
 sed -i "s|/root|$HOME|g" `grep /root -rl ~/db`
 ```
 
+搭建redis单例
+=============
+* 构成  
+	```
+    默认监听6000端口
+	```
+
+* 配置文件示例  
+	```
+	见db/redis_1/redis.conf
+	```
+
+* 启动
+	```
+    redis-server ~/db/redis/redis_1/redis.conf
+    ```
+* 关闭
+    ```
+    redis-cli -h 127.0.0.1 -p 6000 -a redispwd shutdown
+    ```
+
 搭建redis集群
 =============
 
@@ -38,25 +59,4 @@ sed -i "s|/root|$HOME|g" `grep /root -rl ~/db`
 * 关闭
     ```
     sh tools/script/stop_redis_cluster.sh
-    ```
-
-搭建redis单例
-=============
-* 构成  
-	```
-    默认监听6000端口
-	```
-
-* 配置文件示例  
-	```
-	见db/redis_1/redis.conf
-	```
-
-* 启动
-	```
-    redis-server ~/db/redis/redis_1/redis.conf
-    ```
-* 关闭
-    ```
-    redis-cli -h 127.0.0.1 -p 6000 -a redispwd shutdown
     ```

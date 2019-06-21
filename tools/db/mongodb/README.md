@@ -11,6 +11,28 @@ cp -R tools/db/* ~/db
 sed -i "s|/root|$HOME|g" `grep /root -rl ~/db`
 ```
 
+搭建mongo单例
+=============
+* 构成
+	```
+    默认监听26000端口
+	```
+
+* 配置文件示例  
+	```
+    见~/db/mongodb/mongodb/mongodb.conf
+	```
+
+* 启动
+	```
+    mongod -f ~/db/mongodb/mongodb/mongodb.conf &
+	```
+
+* 关闭
+	```
+	pkill -2 mongod
+	```
+
 router+configsvr+shard搭建mongo分片集群
 =======================================
 * 构成
@@ -40,26 +62,4 @@ router+configsvr+shard搭建mongo分片集群
 * 关闭
 	```
 	sh tools/script/stop_mongo_cluster.sh
-	```
-
-搭建mongo单例
-=============
-* 构成
-	```
-    默认监听26000端口
-	```
-
-* 配置文件示例  
-	```
-    见~/db/mongodb/mongodb/mongodb.conf
-	```
-
-* 启动
-	```
-    mongod -f ~/db/mongodb/mongodb/mongodb.conf &
-	```
-
-* 关闭
-	```
-	pkill -2 mongod
 	```

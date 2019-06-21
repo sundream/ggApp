@@ -35,15 +35,6 @@ end
 
 -- 回复一个http请求
 function httpc.response(linkid,status,body,header)
-    if not header then
-        header = {}
-    end
-    -- 小游戏客户端要求加这些字段
-    header["Access-Control-Allow-Origin"] = "*"
-    header["Access-Control-Allow-Headers"] = "X-Requested-With"
-    header["Access-Control-Allow-Methods"] = "PUT,POST,GET,DELETE,OPTIONS"
-    header["X-Powered-By"] = " 3.2.1"
-
     logger.logf("debug","http","op=send,linkid=%s,status=%s,body=%s,header=%s",
         linkid,status,body,header)
     local ok,err = httpd.write_response(sockethelper.writefunc(linkid),status,body,header)
