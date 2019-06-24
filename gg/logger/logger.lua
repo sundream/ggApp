@@ -156,8 +156,8 @@ function logger.logf(loglevel,filename,fmt,...)
             local now = os.time()
             local last_sendtime = logger.bugreport_mails[tag]
             if not last_sendtime or (now - last_sendtime > 60) then
-                local subject = string.format("name=%s,id=%s,index=%s,appid=%s,area=%s,zoneid=%s,filename=%s",
-                    skynet.getenv("name"),skynet.getenv("id"),skynet.getenv("index"),skynet.getenv("appid"),skynet.getenv("area"),skynet.getenv("zoneid"),filename)
+                local subject = string.format("ip=%s,name=%s,id=%s,index=%s,appid=%s,area=%s,zoneid=%s,filename=%s",
+                    skynet.getenv("ip"),skynet.getenv("name"),skynet.getenv("id"),skynet.getenv("index"),skynet.getenv("appid"),skynet.getenv("area"),skynet.getenv("zoneid"),filename)
                 msg = string.format("[%s] %s",os.date("%Y-%m-%d %H:%M:%S",now),msg)
                 logger.sendmail(bugreport_mails,subject,msg)
             end
