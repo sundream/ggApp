@@ -1,7 +1,7 @@
 local skynet = require "skynet"
 local websocket_client = require "websocket.client"
 local crypt = require "skynet.crypt"
-local handshake = require "app.client.handshake"
+local HandShake = require "app.client.handshake"
 local config = require "app.config.custom"
 local codec = require "app.codec.codec"
 
@@ -19,13 +19,12 @@ function websocket.new(opts)
         sessions = {},
         last_recv = "",
         wait_proto = {},
-        secret = nil,   -- 密钥
-
         codec = codecobj,
         handler = opts.handler
     }
+    self.handShake = HandShake.new(self)
     if not config.handshake then
-        self.handshake_result = "OK"
+        self.handShake.result = "OK"
     end
     return setmetatable(self,mt)
 end
@@ -41,6 +40,11 @@ function websocket:connect(host,port)
     self.linkid = self.sock.sock
     if self.handler.onconnect then
         self.handler.onconnect(self)
+    end
+    if self.handShake.result then
+        if self.handler.onhandshake then
+            self.handler.onhandshake(self,self.handShake.result)
+        end
     end
     skynet.timeout(0,function ()
         self:dispatch_message()
@@ -102,24 +106,25 @@ function websocket:close(code,msg)
 end
 
 function websocket:say(...)
-    print(string.format("[linktype=%s,linkid=%s]",self.linktype,self.linkid),...)
+    skynet.error(string.format("[linktype=%s,linkid=%s]",self.linktype,self.linkid),...)
 end
 
 function websocket:onmessage(msg)
-    if not self.handshake_result then
-        local ok,errmsg = handshake.do_handshake(self,msg)
+    if not self.handShake.result then
+        local ok,err = self.handShake:doHandShake(msg)
         if not ok then
             self:close()
-            self:say("handshake fail:",errmsg)
         end
-        if self.handshake_result == "OK" then
-            self:say("handshake success,secret:",self.secret)
+        self:say(string.format("op=handShaking,ok=%s,err=%s,step=%s",ok,err,self.handShake.step))
+        if self.handShake.result then
+           self:say(string.format("op=handShake,encryptKey=%s,result=%s",self.handShake.encryptKey,self.handShake.result))
+           if self.handler.onhandshake then
+               self.handler.onhandshake(self,self.handShake.result)
+           end
         end
         return
     end
-    if self.secret then
-        msg = crypt.xor_str(msg,self.secret)
-    end
+    msg = self.handShake:decrypt(msg)
     local message = self.codec:unpack_message(msg)
     if self.handler.onmessage then
         self.handler.onmessage(self,message)
@@ -144,11 +149,7 @@ function websocket:send_request(protoname,request,callback)
         args = request,
         session = session,
     }
-    local bin = self.codec:pack_message(message)
-    if self.secret then
-        bin = crypt.xor_str(bin,self.secret)
-    end
-    return assert(self:send(bin))
+    return assert(self:send(message))
 end
 
 function websocket:send_response(protoname,response,session)
@@ -158,14 +159,16 @@ function websocket:send_response(protoname,response,session)
         args = response,
         session = session,
     }
-    local bin = self.codec:pack_message(message)
-    if self.secret then
-        bin = crypt.xor_str(bin,self.secret)
-    end
-    return assert(self:send(bin))
+    return assert(self:send(message))
 end
 
-function websocket:send(bin)
+function websocket:send(message)
+    local bin = self.codec:pack_message(message)
+    bin = self.handShake:encrypt(bin)
+    return self:rawSend(bin)
+end
+
+function websocket:rawSend(bin)
     if self.send_binary then
         return self.sock:send_binary(bin)
     else

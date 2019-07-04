@@ -52,7 +52,7 @@ function game.start()
         timeout = assert(tonumber(skynet.getenv("socket_timeout"))),
         maxclient = assert(tonumber(skynet.getenv("socket_max_num"))),
         msg_max_len = assert(tonumber(skynet.getenv("msg_max_len"))),
-        encrypt_key = skynet.getenv("encrypt_key"),
+        encrypt_algorithm = skynet.getenv("encrypt_algorithm"),
     }
     local tcp_gate
     local kcp_gate

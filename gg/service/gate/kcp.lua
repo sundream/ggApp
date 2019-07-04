@@ -79,7 +79,7 @@ local lkcp = require "lkcp"
 local crypt = require "skynet.crypt"
 local lutil = require "lutil"
 local codec = require "gg.codec.codec"
-local handshake = require "gg.service.gate.handshake"
+local chandshake = require "gg.service.gate.handshake"
 
 local bind_socket
 local connection = {}
@@ -166,24 +166,22 @@ function handler.recv_message(agent)
     local kcp = agent.kcp
     local len,msg = kcp:lkcp_recv()
     if len > 0 then
-        if not agent.handshake_result then
-            local ok,errmsg = handshake.do_handshake(agent,msg)
-            if agent.handshake_result then
-                kcp:lkcp_send(handshake.pack_result(agent,agent.handshake_result))
-                if agent.handshake_result == "OK" and agent.master_linkid then
-                    skynet.error(string.format("op=slaveof,linktype=kcp,master=%s,slave=%s",agent.master_linkid,agent.linkid))
-                    skynet.send(watchdog,"lua","client","slaveof",agent.master_linkid,agent.linkid)
+        if not agent.handshake.result then
+            local ok,errmsg = agent.handshake:do_handshake(msg)
+            skynet.error(string.format("op=handshake,linktype=kcp,linkid=%s,addr=%s:%s,ok=%s,errmsg=%s,result=%s,step=%s",agent.linkid,agent.ip,agent.port,ok,errmsg,agent.handshake.result,agent.handshake.step))
+            if agent.handshake.result then
+                kcp:lkcp_send(agent.handshake:pack_result())
+                handler.onhandshake(agent.addr,agent.handshake.result)
+                if agent.handshake.result == "OK" and agent.handshake.master_linkid then
+                    skynet.error(string.format("op=slaveof,linktype=kcp,master=%s,slave=%s",agent.handshake.master_linkid,agent.linkid))
+                    skynet.send(watchdog,"lua","client","slaveof",agent.handshake.master_linkid,agent.linkid)
                 end
             end
             if not ok then
-                skynet.error(string.format("op=handshake,linktype=kcp,linkid=%s,addr=%s:%s,errmsg=%s",agent.linkid,agent.ip,agent.port,errmsg))
                 socket_close(agent.linkid,"handshake fail")
             end
         else
-            local secret = agent.secret
-            if secret then
-                msg = crypt.xor_str(msg,secret)
-            end
+            msg = agent.handshake:decrypt(msg)
             local message = codecobj:unpack_message(msg)
             local address = forward_protos[message.cmd] or watchdog
             skynet.send(address,"lua","client","onmessage",agent.linkid,message)
@@ -281,16 +279,21 @@ function handler.onconnect(from,msg)
         addr = from,
         ip = ip,
         port = port,
+
+        handshake = chandshake.new(),
     }
     connection[from] = agent
     connection[linkid] = agent
     udp_send_ack_until_confirm(from,linkid,endpoint_linkid)
     skynet.send(watchdog,"lua","client","onconnect","kcp",agent.linkid,from)
     if encrypt_algorithm then
-        kcp:lkcp_send(handshake.pack_challenge(agent,encrypt_algorithm))
+        kcp:lkcp_send(agent.handshake:pack_challenge(linkid,encrypt_algorithm))
     else
-        agent.handshake_result = "OK"
+        agent.handshake.result = "OK"
     end
+end
+
+function handler.onhandshake(from,result)
 end
 
 function handler.onclose(from,msg)
@@ -370,10 +373,7 @@ function CMD.write(linkid,message)
         return
     end
     local msg = codecobj:pack_message(message)
-    local secret = agent.secret
-    if secret then
-        msg = crypt.xor_str(msg,secret)
-    end
+    msg = agent.handshake:encrypt(msg)
     assert(#msg <= msg_max_len)
     local kcp = agent.kcp
     kcp:lkcp_send(msg)

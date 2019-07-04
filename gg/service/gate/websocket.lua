@@ -65,7 +65,7 @@ local httpd = require "http.httpd"
 local sockethelper = require "http.sockethelper"
 local websocket = require "websocket.server"
 local codec = require "gg.codec.codec"
-local handshake = require "gg.service.gate.handshake"
+local chandshake = require "gg.service.gate.handshake"
 
 local connection = {}
 local client_number = 0
@@ -114,6 +114,7 @@ function handler.on_open(ws)
     end
     client_number = client_number + 1
     connection[linkid] = ws
+    ws.handshake = chandshake.new()
     skynet.error(string.format("op=onconnect,linktype=websocket,linkid=%s,addr=%s",linkid,addr))
     skynet.send(watchdog,"lua","client","onconnect","websocket",linkid,addr)
     if timeout > 0 then
@@ -121,35 +122,36 @@ function handler.on_open(ws)
         handler.check_timeout(linkid)
     end
     if encrypt_algorithm then
-        send_message(ws,handshake.pack_challenge(ws,encrypt_algorithm))
+        send_message(ws,ws.handshake:pack_challenge(linkid,encrypt_algorithm))
     else
-        ws.handshake_result = "OK"
+        ws.handshake.result = "OK"
     end
+end
+
+function handler.onhandshake(ws,result)
 end
 
 function handler._on_message(ws,msg)
     local linkid = ws.linkid
-    if not ws.handshake_result then
-        local ok,errmsg = handshake.do_handshake(ws,msg)
-        if ws.handshake_result then
-            send_message(ws,handshake.pack_result(ws,ws.handshake_result))
-            if ws.handshake_result == "OK" and ws.master_linkid then
-                skynet.error(string.format("op=slaveof,linktype=websocket,master=%s,slave=%s",ws.master_linkid,ws.linkid))
-                skynet.send(watchdog,"lua","client","slaveof",ws.master_linkid,ws.linkid)
+    if not ws.handshake.result then
+        local ok,errmsg = ws.handshake:do_handshake(msg)
+        skynet.error(string.format("op=handshake,linktype=websocket,linkid=%s,addr=%s,ok=%s,errmsg=%s,result=%s,step=%s",linkid,ws.addr,ok,errmsg,ws.handshake.result,ws.handshake.step))
+        if ws.handshake.result then
+            send_message(ws,ws.handshake:pack_result())
+            handler.onhandshake(ws,ws.handshake.result)
+            if ws.handshake.result == "OK" and ws.handshake.master_linkid then
+                skynet.error(string.format("op=slaveof,linktype=websocket,master=%s,slave=%s",ws.handshake.master_linkid,ws.linkid))
+                skynet.send(watchdog,"lua","client","slaveof",ws.handshake.master_linkid,ws.linkid)
             end
         end
         if not ok then
-            skynet.error(string.format("op=handshake,linktype=websocket,linkid=%s,addr=%s,errmsg=%s",linkid,ws.addr,errmsg))
             -- 1000  "normal closure" status code
             ws:close(1000,"handshake fail")
         end
         return
     end
     ws.active = skynet.now()
-    local secret = ws.secret
-    if secret then
-        msg = crypt.xor_str(msg,secret)
-    end
+    msg = ws.handshake:decrypt(msg)
     local message = codecobj:unpack_message(msg)
     local address = forward_protos[message.cmd] or watchdog
     skynet.send(address,"lua","client","onmessage",linkid,message)
@@ -241,10 +243,7 @@ function CMD.write(linkid,message)
         return
     end
     local msg = codecobj:pack_message(message)
-    local secret = ws.secret
-    if secret then
-        msg = crypt.xor_str(msg,secret)
-    end
+    msg = ws.handshake:encrypt(msg)
     send_message(ws,msg)
 end
 

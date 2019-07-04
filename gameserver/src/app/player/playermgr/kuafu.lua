@@ -14,9 +14,6 @@
 --@param[type=string] onlogin 经过gg.pack_function序列化过的函数
 function playermgr.go_server(linkobj,go_serverid,onlogin)
     local from_serverid = gg.server.id
-    if from_serverid == go_serverid then
-        return
-    end
     local go_server = gg.server.online_serverlist[go_serverid]
     if not go_server then
         return

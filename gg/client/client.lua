@@ -20,10 +20,6 @@ function cclient:init(conf)
     self.linkobjs = gg.class.ccontainer.new()
 end
 
-function cclient:pack_ud()
-    return nil
-end
-
 function cclient:send(linkid,cmd,args,callback)
     local linkobj = self:getlinkobj(linkid)
     if not linkobj then
@@ -43,7 +39,7 @@ function cclient:send(linkid,cmd,args,callback)
             cmd = cmd,
             args = args,
             session = session,
-            ud = self:pack_ud(),
+            ud = self.pack_ud and self:pack_ud(),
         }
     else
         local session = callback
@@ -52,7 +48,7 @@ function cclient:send(linkid,cmd,args,callback)
             cmd = cmd,
             args = args,
             session = session,
-            ud = self:pack_ud(),
+            ud = self.pack_ud and self:pack_ud(),
         }
     end
     local linktype = linkobj.linktype

@@ -10,8 +10,15 @@ local robot = {}
 
 function robot.onconnect(linkobj)
     skynet.error(string.format("op=onconnect,linktype=%s,linkid=%s,roleid=%s",linkobj.linktype,linkobj.linkid,roleid))
-    local account = string.format("#%d",roleid)
     robot.linkobj = linkobj
+end
+
+-- onhandshake在onconnect之后调用,握手成功后才和服务端通信!!!
+function robot.onhandshake(linkobj,result)
+    if result ~= "OK" then
+        return
+    end
+    local account = string.format("#%d",roleid)
     robot.account = account
     if config.debuglogin then
         login.entergame(linkobj,account,roleid,nil,robot.onlogin)

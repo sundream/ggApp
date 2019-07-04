@@ -145,23 +145,23 @@ function logger.logf(loglevel,filename,fmt,...)
     msg = string.format("[%s] %s\n",loglevel_name,msg)
     skynet.send(logger.service,"lua","log",filename,msg)
     if loglevel >= logger.ERROR then
-        local bugreport_mails = skynet.getenv("bugreport_mails")
-        if bugreport_mails then
+        local bug_report_mails = skynet.getenv("bug_report_mails")
+        if bug_report_mails then
             local pos = string.find(msg,"\n")
             local tag = msg:sub(1,pos-1)
-            if not logger.bugreport_mails then
-                logger.bugreport_mails = {}
+            if not logger.bug_report_mails then
+                logger.bug_report_mails = {}
             end
             -- 控制类似bug发送间隔
             local now = os.time()
-            local last_sendtime = logger.bugreport_mails[tag]
+            local last_sendtime = logger.bug_report_mails[tag]
             if not last_sendtime or (now - last_sendtime > 60) then
                 local subject = string.format("ip=%s,name=%s,id=%s,index=%s,appid=%s,area=%s,zoneid=%s,filename=%s",
                     skynet.getenv("ip"),skynet.getenv("name"),skynet.getenv("id"),skynet.getenv("index"),skynet.getenv("appid"),skynet.getenv("area"),skynet.getenv("zoneid"),filename)
                 msg = string.format("[%s] %s",os.date("%Y-%m-%d %H:%M:%S",now),msg)
-                logger.sendmail(bugreport_mails,subject,msg)
+                logger.sendmail(bug_report_mails,subject,msg)
             end
-            logger.bugreport_mails[tag] = now
+            logger.bug_report_mails[tag] = now
         end
     end
     return msg

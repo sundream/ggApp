@@ -22,7 +22,7 @@ Table of Contents
 
 状态
 ===
-开发阶段(Make it work)
+stable(Make it better)
 
 特点
 ====

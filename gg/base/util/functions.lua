@@ -430,3 +430,18 @@ function gg.execcode(code,env,...)
     end
     return chunk(...)
 end
+
+--- 定义一个废弃接口
+--@param[type=function] oldfunc 旧函数对象
+--@parma[type=string] oldname 旧函数名
+--@param[type=string] newname 新函数名
+--@return 功能等价于旧函数的包装函数对象
+--@usage
+--local todo_delete_func = function () end
+--todo_delete_func = gg.deprecated(todo_delete_func,"todo_delete_func","new_func")
+function gg.deprecated(oldfunc,oldname,newname)
+    return function (...)
+        logger.print(string.format("%s() is deprecated,please use %s()",oldname,newname))
+        return oldfunc(...)
+    end
+end

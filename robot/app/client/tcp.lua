@@ -3,7 +3,7 @@ local socket = require "skynet.socket"
 local crypt = require "skynet.crypt"
 local socket_proxy = require "socket_proxy"
 local config = require "app.config.custom"
-local handshake = require "app.client.handshake"
+local HandShake = require "app.client.handshake"
 local codec = require "app.codec.codec"
 
 local tcp = {}
@@ -17,13 +17,12 @@ function tcp.new(opts)
         session = 0,
         sessions = {},
         wait_proto = {},
-        secret = nil,   -- 密钥
-
         codec = codecobj,
         handler = opts.handler,
     }
+    self.handShake = HandShake.new(self)
     if not config.handshake then
-        self.handshake_result = "OK"
+        self.handShake.result = "OK"
     end
     return setmetatable(self,mt)
 end
@@ -35,6 +34,11 @@ function tcp:connect(host,port)
     socket_proxy.subscribe(linkid,0)
     if self.handler.onconnect then
         self.handler.onconnect(self)
+    end
+    if self.handShake.result then
+        if self.handler.onhandshake then
+            self.handler.onhandshake(self,self.handShake.result)
+        end
     end
     skynet.timeout(0,function ()
         self:dispatch_message()
@@ -71,20 +75,21 @@ function tcp:say(...)
 end
 
 function tcp:onmessage(msg)
-    if not self.handshake_result then
-        local ok,errmsg = handshake.do_handshake(self,msg)
+    if not self.handShake.result then
+        local ok,err = self.handShake:doHandShake(msg)
         if not ok then
             self:close()
-            self:say("handshake fail:",errmsg)
         end
-        if self.handshake_result == "OK" then
-            self:say("handshake success,secret:",self.secret)
+        self:say(string.format("op=handShaking,ok=%s,err=%s,step=%s",ok,err,self.handShake.step))
+        if self.handShake.result then
+           self:say(string.format("op=handShake,encryptKey=%s,result=%s",self.handShake.encryptKey,self.handShake.result))
+           if self.handler.onhandshake then
+               self.handler.onhandshake(self,self.handShake.result)
+           end
         end
         return
     end
-    if self.secret then
-        msg = crypt.xor_str(msg,self.secret)
-    end
+    msg = self.handShake:decrypt(msg)
     local message = self.codec:unpack_message(msg)
     if self.handler.onmessage then
         self.handler.onmessage(self,message)
@@ -109,11 +114,7 @@ function tcp:send_request(protoname,request,callback)
         args = request,
         session = session,
     }
-    local bin = self.codec:pack_message(message)
-    if self.secret then
-        bin = crypt.xor_str(bin,self.secret)
-    end
-    return self:send(bin)
+    return self:send(message)
 end
 
 function tcp:send_response(protoname,response,session)
@@ -123,14 +124,16 @@ function tcp:send_response(protoname,response,session)
         args = response,
         session = session,
     }
-    local bin = self.codec:pack_message(message)
-    if self.secret then
-        bin = crypt.xor_str(bin,self.secret)
-    end
-    return self:send(bin)
+    return self:send(message)
 end
 
-function tcp:send(bin)
+function tcp:send(message)
+    local bin = self.codec:pack_message(message)
+    bin = self.handShake:encrypt(bin)
+    self:rawSend(bin)
+end
+
+function tcp:rawSend(bin)
     local size = #bin
     assert(size <= 65535,"package too long")
     socket_proxy.write(self.linkid,bin)

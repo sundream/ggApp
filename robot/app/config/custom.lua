@@ -1,6 +1,6 @@
 return {
     handshake = false,       -- false:不走握手流程
-    --debuglogin = true,     -- true:调试登录(不和账号中心通信)
+    --debuglogin = true,     -- true:调试登录(不和登录服通信)
     appid = "appid",
     appkey = "secret",
     loginserver = {

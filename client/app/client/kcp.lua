@@ -1,7 +1,7 @@
 local socket = require "socket"
 local lkcp = require "lkcp"
 local crypt = require "crypt"
-local handshake = require "app.client.handshake"
+local HandShake = require "app.client.handshake"
 
 --  kcp会话管理,格式: 1byte协议类别+具体协议参数
 --  协议类别:
@@ -41,10 +41,10 @@ function kcp.new()
         sock = sock,
         wait_proto = {},
         verbose = true,  -- default: print recv message
-        secret = nil,    -- 密钥
     }
+    self.handShake = HandShake.new(self)
     if not app.config.handshake then
-        self.handshake_result = "OK"
+        self.handShake.result = "OK"
     end
     return setmetatable(self,mt)
 end
@@ -89,8 +89,14 @@ function kcp:on_tick(ms)
     self.kcp:lkcp_update(ms)
 end
 
-function kcp:send(msg)
-    self.kcp:lkcp_send(msg)
+function kcp:send(message)
+    local bin = app.codec:pack_message(message)
+    bin = self.handShake:encrypt(bin)
+    self:rawSend(bin)
+end
+
+function kcp:rawSend(bin)
+    self.kcp:lkcp_send(bin)
     self.kcp:lkcp_flush()
 end
 
@@ -107,11 +113,7 @@ function kcp:send_request(protoname,request,callback)
         args = request,
         session = session,
     }
-    local bin = app.codec:pack_message(message)
-    if self.secret then
-        bin = crypt.xor_str(bin,self.secret)
-    end
-    return self:send(bin)
+    self:send(message)
 end
 
 function kcp:send_response(protoname,response,session)
@@ -121,11 +123,7 @@ function kcp:send_response(protoname,response,session)
         args = response,
         session = session,
     }
-    local bin = app.codec:pack_message(message)
-    if self.secret then
-        bin = crypt.xor_str(bin,self.secret)
-    end
-    return self:send(bin)
+    self:send(message)
 end
 
 function kcp:dispatch_message()
@@ -186,20 +184,18 @@ function kcp:say(...)
 end
 
 function kcp:onmessage(msg)
-    if not self.handshake_result then
-        local ok,errmsg = handshake.do_handshake(self,msg)
+    if not self.handShake.result then
+        local ok,err = self.handShake:doHandShake(msg)
         if not ok then
             self:close()
-            self:say("handshake fail:",errmsg)
         end
-        if self.handshake_result == "OK" then
-            self:say("handshake success,secret:",self.secret)
+        self:say(string.format("op=handShaking,ok=%s,err=%s,step=%s",ok,err,self.handShake.step))
+        if self.handShake.result then
+           self:say(string.format("op=handShake,encryptKey=%s,result=%s",self.handShake.encryptKey,self.handShake.result))
         end
         return
     end
-    if self.secret then
-        msg = crypt.xor_str(msg,self.secret)
-    end
+    msg = self.handShake:decrypt(msg)
     local message = app.codec:unpack_message(msg)
     if self.verbose then
         self:say("\n"..table.dump(message))

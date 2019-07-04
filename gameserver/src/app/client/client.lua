@@ -100,6 +100,7 @@ function cclient:send_request(linkobj,proto,request,callback)
         logger.logf("debug","client","op=send,linkid=%s,linktype=%s,ip=%s,port=%s,pid=%s,message=%s",
         linkobj.linkid,linkobj.linktype,linkobj.ip,linkobj.port,linkobj.pid,message)
     end
+    return message
 end
 
 cclient.sendpackage = cclient.send_request
@@ -122,6 +123,7 @@ function cclient:send_response(linkobj,proto,response,session)
         logger.logf("debug","client","op=send,linkid=%s,linktype=%s,ip=%s,port=%s,pid=%s,message=%s",
         linkobj.linkid,linkobj.linktype,linkobj.ip,linkobj.port,linkobj.pid,message)
     end
+    return message
 end
 
 return cclient

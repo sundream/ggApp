@@ -734,3 +734,27 @@ function table.range(from,to)
     end
     return list
 end
+
+--- 从表格中查找指定值，返回其索引，如果没找到返回nil
+--@param[type=table] array 表格
+--@param[type=mixed] value 要查找的值
+--@param[type=integer] begin 起始索引值,默认为1
+--@return[type=integer|nil] 找到的位置,没找到返回nil
+function table.indexof(array, value, begin)
+    for i = begin or 1, #array do
+        if array[i] == value then return i end
+    end
+    return nil
+end
+
+--- 从表格中查找指定值，返回其 key，如果没找到返回 nil
+--@param[type=table] hashtable 表格
+--@param[type=mixed] value 要查找的值
+--@return 该值对应的 key
+function table.keyof(hashtable, value)
+    for k, v in pairs(hashtable) do
+        if v == value then return k end
+    end
+    return nil
+end
+
