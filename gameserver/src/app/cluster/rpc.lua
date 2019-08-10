@@ -15,7 +15,7 @@ end
 
 function rpc.reload()
     -- 优先使用nodes中提供的集群配置
-    local nodes = skynet.getenv("nodes")
+    local nodes = skynet.getenv("nodes") or {}
     rpc.node_address = {}
     for node_name,conf in pairs(nodes) do
         rpc.node_address[node_name] = conf.address
