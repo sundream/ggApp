@@ -203,9 +203,9 @@ end
 --@return[type=table] 格式化后的时间表
 --@usage
 --  local secs = 3661
---  -- {day=0,hour=1,min=1,sec=61},格式只指定了hour,因此只有hour是精确的
+--  got {day=0,hour=1,min=0,sec=61},格式只指定了hour,因此只有hour是精确的
 --  local t = time.dhms_time({hour=true})
---  -- {day=0,hour=1,min=1,sec=1},格式只指定了hour,min,sec,因此hour,min,sec都精确
+--  got {day=0,hour=1,min=1,sec=1},格式只指定了hour,min,sec,因此hour,min,sec都精确
 --  local t = time.dhms_time({hour=true,min=true,sec=true})
 function time.dhms_time(fmt,secs)
     local day = math.floor(secs/time.DAY_SECS)

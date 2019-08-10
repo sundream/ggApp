@@ -11,17 +11,19 @@ function cloginserver:init(conf)
     self.host = assert(conf.host)
     self.appid = assert(conf.appid)
     self.appkey = assert(conf.appkey)
+    self.loginserver_appkey = assert(conf.loginserver_appkey)
 end
 
-function cloginserver:signature(str)
+function cloginserver:signature(str,appkey)
+    appkey = appkey or self.appkey
     if type(str) == "table" then
         str = table.ksort(str,"&",{sign=true})
     end
-    return crypt.base64encode(crypt.hmac_sha1(self.appkey,str))
+    return crypt.base64encode(crypt.hmac_sha1(appkey,str))
 end
 
-function cloginserver:encode_request(request)
-    request.sign = self:signature(request)
+function cloginserver:encode_request(request,appkey)
+    request.sign = self:signature(request,appkey)
     return cjson.encode(request)
 end
 
@@ -300,11 +302,10 @@ end
 function cloginserver:rpc(module,cmd,args)
     local url = "/api/rpc"
     local req = self:encode_request({
-       appid = self.appid,
        module = module,
        cmd = cmd,
        args = cjson.encode(args or {}),
-    })
+    },self.loginserver_appkey)
     return self:decode_response(self:post(url,req))
 end
 

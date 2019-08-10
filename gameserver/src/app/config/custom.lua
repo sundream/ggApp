@@ -34,7 +34,7 @@ return {
     db_config = {
         db = skynet.getenv("appid") or "game",
         rs = {
-            {host = "127.0.0.1",port = 26000,username=nil,password=nil,authmod="scram-sha1",authdb="admin"},
+            {host = "127.0.0.1",port = 26000,username=nil,password=nil,authmod="scram_sha1",authdb="admin"},
         }
     },
 
