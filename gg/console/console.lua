@@ -11,7 +11,19 @@ local function console_main_loop()
         if cmdline ~= "" then
             local func,err = load(cmdline)
             if not func then
-                print(err)
+                if cmdline == "reload" then
+                    -- 内网测试允许reload所有模块
+                    local skynet = require "skynet"
+                    skynet.cache.clear()
+                    for k,v in pairs(package.loaded) do
+                        if string.startswith(k,"app.") then
+                            package.loaded[k] = nil
+                        end
+                    end
+                    print("reload ok")
+                else
+                    print(err)
+                end
             else
                 -- 防止控制台被阻塞住
                 skynet.timeout(0,function ()

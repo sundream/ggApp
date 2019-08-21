@@ -58,3 +58,9 @@
 [submodule "gg/like_skynet/3rd/lua-snowflake"]
 	path = gg/like_skynet/3rd/lua-snowflake
 	url = https://github.com/sundream/lua-snowflake.git
+[submodule "gg/like_skynet/3rd/lua-openssl"]
+	path = gg/like_skynet/3rd/lua-openssl
+	url = https://github.com/sundream/lua-openssl.git
+[submodule "gg/like_skynet/3rd/luaxml"]
+	path = gg/like_skynet/3rd/luaxml
+	url = https://github.com/sundream/luaxml.git

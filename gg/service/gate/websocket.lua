@@ -43,6 +43,9 @@
 --      skynet.send(watchdog,"lua","client","onmessage",linkid,message)
 --  4. 告知watchdog成为某个连接的辅助连接
 --      skynet.send(watchdog,"lua","client","saveof",master_linkid,slave_linkid)
+--  5. 握手完毕
+--      skynet.send(watchdog,"lua","client","onhandshake","websocket",linkid,addr,result)
+
 --
 --  watchdog -> websocket_gate
 ----1. 监听端口
@@ -125,10 +128,12 @@ function handler.on_open(ws)
         send_message(ws,ws.handshake:pack_challenge(linkid,encrypt_algorithm))
     else
         ws.handshake.result = "OK"
+        handler.onhandshake(ws,ws.handshake.result)
     end
 end
 
 function handler.onhandshake(ws,result)
+    skynet.send(watchdog,"lua","client","onhandshake","websocket",ws.linkid,ws.addr,result)
 end
 
 function handler._on_message(ws,msg)
@@ -204,8 +209,8 @@ function CMD.open(conf)
         if code == 200 then
             if header.upgrade == "websocket" then
                 if header["x-real-ip"] then
-                    local proxy_ip,port = string.match(addr,"([^:]+):(%d+)")
-                    addr = string.format("%s:%s",header["x-real-ip"],port)
+                    local proxy_ip,proxy_port = string.match(addr,"([^:]+):(%d+)")
+                    addr = string.format("%s:%s",header["x-real-ip"],proxy_port)
                 end
                 local ws,err = websocket:new({
                     sock = linkid,

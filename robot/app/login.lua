@@ -14,7 +14,7 @@ local function signature(str,secret)
 end
 
 local function make_request(request,secret)
-    secret = secret or config.appkey
+    secret = secret or config.loginserver.appkey
     request.sign = signature(request,secret)
     return request
 end

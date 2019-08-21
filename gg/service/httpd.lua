@@ -44,7 +44,7 @@ function handler.start(watchdog,linkid,ip,port,msg_max_len)
                 uri = string.match(uri,"http[s]?://.-(/.+)")
             end
             -- 使用call保证http回复发送出去后才关闭连接!
-            local ok = pcall(skynet.call,watchdog,"lua","service","http_onmessage",agent,uri,header,query,body)
+            local ok = pcall(skynet.call,watchdog,"lua","client","http_onmessage",agent,uri,header,query,body)
             if not ok then
                 -- server internal error
                 response(linkid,500)

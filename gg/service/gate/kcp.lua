@@ -41,8 +41,11 @@
 --      skynet.send(watchdog,"lua","client","onclose",linkid)
 --  3. 收到消息时转发给watchdog
 --      skynet.send(watchdog,"lua","client","onmessage",linkid,message)
-----4. 告知watchdog成为某个连接的辅助连接
+--  4. 告知watchdog成为某个连接的辅助连接
 --      skynet.send(watchdog,"lua","client","saveof",master_linkid,slave_linkid)
+--  5. 握手完毕
+--      skynet.send(watchdog,"lua","client","onhandshake","kcp",linkid,addr,result)
+
 --
 --  watchdog -> kcp_gate
 ----1. 监听端口(底层用udp通信)
@@ -168,7 +171,8 @@ function handler.recv_message(agent)
     if len > 0 then
         if not agent.handshake.result then
             local ok,errmsg = agent.handshake:do_handshake(msg)
-            skynet.error(string.format("op=handshake,linktype=kcp,linkid=%s,addr=%s:%s,ok=%s,errmsg=%s,result=%s,step=%s",agent.linkid,agent.ip,agent.port,ok,errmsg,agent.handshake.result,agent.handshake.step))
+            skynet.error(string.format("op=handshake,linktype=kcp,linkid=%s,addr=%s:%s,ok=%s,errmsg=%s,result=%s,step=%s",
+                agent.linkid,agent.ip,agent.port,ok,errmsg,agent.handshake.result,agent.handshake.step))
             if agent.handshake.result then
                 kcp:lkcp_send(agent.handshake:pack_result())
                 handler.onhandshake(agent.addr,agent.handshake.result)
@@ -290,10 +294,13 @@ function handler.onconnect(from,msg)
         kcp:lkcp_send(agent.handshake:pack_challenge(linkid,encrypt_algorithm))
     else
         agent.handshake.result = "OK"
+        handler.onhandshake(agent.addr,agent.handshake.result)
     end
 end
 
 function handler.onhandshake(from,result)
+    local agent = connection[from]
+    skynet.send(watchdog,"lua","client","onhandshake","kcp",agent.linkid,from,result)
 end
 
 function handler.onclose(from,msg)

@@ -43,6 +43,9 @@
 --      skynet.send(watchdog,"lua","client","onmessage",linkid,message)
 --  4. 告知watchdog成为某个连接的辅助连接
 --      skynet.send(watchdog,"lua","client","saveof",master_linkid,slave_linkid)
+--  5. 握手完毕
+--      skynet.send(watchdog,"lua","client","onhandshake","tcp",linkid,addr,result)
+
 --
 --  watchdog -> tcp_gate
 ----1. 监听端口
@@ -110,10 +113,13 @@ function handler.onconnect(linkid,addr)
         socket_write(linkid,agent.handshake:pack_challenge(linkid,encrypt_algorithm))
     else
         agent.handshake.result = "OK"
+        handler.onhandshake(linkid,agent.handshake.result)
     end
 end
 
 function handler.onhandshake(linkid,result)
+    local agent = connection[linkid]
+    skynet.send(watchdog,"lua","client","onhandshake","tcp",linkid,agent.addr,result)
 end
 
 function handler.onclose(linkid)

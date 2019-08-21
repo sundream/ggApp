@@ -1,0 +1,5 @@
+require "app.game.player.playermgr.init"
+require "app.game.player.player"
+require "app.game.player.attrcontainer"
+require "app.game.player.attr"
+require "app.game.player.delay_exitgame"

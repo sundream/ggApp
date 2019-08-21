@@ -420,8 +420,8 @@ end
 --@return 执行这段代码后的返回值
 --@usage
 --  local code = "return string.len('hello')"
---  local len = gg.execcode(code)   -- 5
-function gg.execcode(code,env,...)
+--  local len = gg.eval(code)   -- 5
+function gg.eval(code,env,...)
     local chunk
     if env == nil then
         chunk = load(code,"=(load)","bt")

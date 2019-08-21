@@ -1,4 +1,4 @@
-local function collect_uv(func_id,func,uv)
+local function collect_uv(func_name,func,uv)
     local i = 1
     while true do
         local name,value = debug.getupvalue(func,i)
@@ -6,10 +6,10 @@ local function collect_uv(func_id,func,uv)
             return
         end
         if name ~= "_ENV" then
-            if not uv[func_id] then
-                uv[func_id] = {"function",}
+            if not uv[func_name] then
+                uv[func_name] = {"function",}
             end
-            uv[func_id][name] = {
+            uv[func_name][name] = {
                 func = func,
                 upvalueid = debug.upvalueid(func,i),
                 index = i,
@@ -46,9 +46,9 @@ local function merge_uv(uv1,uv2,name)
                 if upvalue_info1[1] ~= "function" then
                     return false,string.format("[merge_uv] mismatch,name=%s,key=%s",name,k)
                 end
-                for func_id,upvalue2 in pairs(upvalue_info2) do
-                    if func_id ~= 1 then
-                        local upvalue1 = upvalue_info1[func_id]
+                for func_name,upvalue2 in pairs(upvalue_info2) do
+                    if func_name ~= 1 then
+                        local upvalue1 = upvalue_info1[func_name]
                         if upvalue1 and upvalue1.func ~= upvalue2.func then
                             debug.upvaluejoin(upvalue2.func,upvalue2.index,upvalue1.func,upvalue1.index)
                         end
@@ -105,13 +105,12 @@ end
 --@usage gg.reload("gg.base.reload")
 --只支持简单热更,主要策略是: 只更新模块的函数,其他数据
 --不更新,函数绑定的upvalue值也不更新,因此上层代码需要按
---一定规范书写,比如模块定义要么无返回,要么返回table,当
---模块为一个table时,模块所用到的数据均应放到模块变量内,
---另外我们不鼓励在模块级别定义local函数,因为upvalue都不
---更新,我们假定函数绑定的upvalue都应该是数据,upvalue中的
---函数是热更不了的,另外如果模块内定义了全局函数__hotfix,
---热更后会自动回调(传递旧模块对象),你可以在该函数内自定义
---热更后的逻辑
+--一定规范书写,比如模块定义要么无返回,要么返回模块对象(table)
+--模块所用到的数据均应放到模块变量内,另外我们不鼓励在模块级别
+--定义local函数,因为upvalue都不更新,我们假定函数绑定的upvalue
+--都应该是数据/其他模块对象,upvalue中直接绑定函数是热更不了的,
+--另外如果模块内定义了全局函数__hotfix,热更后会自动回调(传递旧模块对象),
+--你可以在该函数内自定义热更后的逻辑
 function gg.reload(module_name)
     local chunk,err
     local env = _ENV or _G
@@ -166,7 +165,7 @@ function gg.reload(module_name)
     end
     local ok,errmsg
     if gg.safe_reloads and gg.safe_reloads[module_name] then
-        -- 如果已被标记为,则全量覆盖
+        -- 如果已被标记为安全数据,则全量覆盖(比如用lua的table表示的配置数据可以做这样的标记)
         ok = true
         for k,v in pairs(new_module) do
             old_module[k] = v

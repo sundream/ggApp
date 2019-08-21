@@ -20,6 +20,14 @@ function cclient:init(conf)
     self.linkobjs = gg.class.ccontainer.new()
 end
 
+function cclient:gen_session()
+    -- TODO: 生成64位ID?
+    repeat
+        self.session = self.session + 1
+    until not self.sessions[self.session]
+    return self.session
+end
+
 function cclient:send(linkid,cmd,args,callback)
     local linkobj = self:getlinkobj(linkid)
     if not linkobj then
@@ -30,8 +38,7 @@ function cclient:send(linkid,cmd,args,callback)
     if not is_response then
         local session
         if callback then
-            self.session = self.session + 1
-            session = self.session
+            session = self:gen_session()
             self.sessions[session] = callback
         end
         message = {
@@ -126,7 +133,7 @@ function cclient:unbind_slave(master_linkobj)
 end
 
 --- 热更协议
-function cclient:reload_proto()
+function cclient:reload()
     if self.tcp_gate then
         skynet.send(self.tcp_gate,"lua","reload")
     end
@@ -139,17 +146,18 @@ function cclient:reload_proto()
 end
 
 --- 让gate转发协议到指定服务
+--@param[type=int] linkid 连接ID
 --@param[type=string] proto 协议名
 --@param[type=int|string] address 服务地址
-function cclient:forward(proto,address)
+function cclient:forward(linkid,proto,address)
     if self.tcp_gate then
-        skynet.send(self.tcp_gate,"lua","forward",proto,address)
+        skynet.send(self.tcp_gate,"lua","forward",linkid,proto,address)
     end
     if self.websocket_gate then
-        skynet.send(self.websocket_gate,"lua","forward",proto,address)
+        skynet.send(self.websocket_gate,"lua","forward",linkid,proto,address)
     end
     if self.kcp_gate then
-        skynet.send(self.kcp_gate,"lua","forward",proto,address)
+        skynet.send(self.kcp_gate,"lua","forward",linkid,proto,address)
     end
 end
 

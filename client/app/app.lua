@@ -8,7 +8,7 @@ local socket = require "socket"
 local config = require "app.config"
 
 app = {}
-app._VERSION = "0.0.1"
+app._VERSION = "0.3.0"
 
 local parse_cmd
 -- comptiable with lua51
@@ -92,7 +92,7 @@ function app:usage()
 end
 
 function app:dispatch_message()
-    local readable,writable,err = socket.select(self.wait_readables,self.writables,self.timeout)
+    local readable,writable,err = socket.select(self.wait_readables,self.wait_writables,self.timeout)
     for i,sock in ipairs(readable) do
         if sock == self.listen_stdin then
             if self.stdin then

@@ -17,7 +17,7 @@
 --  {key="expire_time"},
 -- }
 --})
-cmatchmgr = class("cmatchmgr")
+local cmatchmgr = class("cmatchmgr")
 
 function cmatchmgr:init(conf)
     self.timeout = assert(conf.timeout)    -- 多久过后匹配超时

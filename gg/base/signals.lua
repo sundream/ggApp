@@ -1,4 +1,4 @@
-csignals = class("csignals")
+local csignals = class("csignals")
 
 function csignals:init(id)
     self.id = id or tostring(self)

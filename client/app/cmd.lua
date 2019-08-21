@@ -149,7 +149,7 @@ local function signature(str,secret)
 end
 
 local function make_request(request,secret)
-    secret = secret or app.config.appkey
+    secret = secret or app.config.loginserver.appkey
     request.sign = signature(request,secret)
     return cjson.encode(request)
 end

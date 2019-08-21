@@ -18,7 +18,7 @@ end
 --@usage
 --  local sync = gg.class.csync.new()
 --  local id = string.format("player.%s",pid)
---  local ok,player = sync.once_do(id,playermgr._loadplayer,pid)
+--  local ok,player = sync.once_do(id,gg.playermgr._loadplayer,gg.playermgr,pid)
 function csync:once_do(id,func,...)
     local tasks = self.tasks
     local task = tasks[id]

@@ -276,7 +276,7 @@ see [robot/README.md](https://github.com/sundream/ggApp/blob/master/robot/README
 	提前安装luacheck
 	sudo luarocks install luacheck
 	// sudo apt install lua-check	# ubuntu下也可以用这种方式安装
-	目前loginserver和gameserver进行了配置了luacheck静态检查规则,可以用luacheck进行检查,如:
+	目前loginserver和gameserver配置了luacheck静态检查规则,可以用luacheck进行检查,如:
 	cd gameserver
 	luacheck . | tee /tmp/luacheck.out
 	```
@@ -297,6 +297,6 @@ see [robot/README.md](https://github.com/sundream/ggApp/blob/master/robot/README
 
 证书
 ====
-ggApp is licensed under the MIT License,Version 0.0.1. See [LICENSE](https://github.com/sundream/ggApp/blob/master/LICENSE) for the full license text.
+ggApp is licensed under the MIT License,Version 0.3.0. See [LICENSE](https://github.com/sundream/ggApp/blob/master/LICENSE) for the full license text.
 
 [Back to TOC](#table-of-contents)
